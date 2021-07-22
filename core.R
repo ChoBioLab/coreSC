@@ -1,5 +1,7 @@
 # !/usr/bin/env Rscript
 
+params <- read.csv("./config/params.csv", row.names = 1)
+
 # install.packages("Seurat","dplyr","cowplot")
 library(Seurat)
 library(dplyr)
