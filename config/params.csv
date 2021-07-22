@@ -1,5 +1,5 @@
 var,value
-proj_dir,/tmp
+root_dir,/tmp
 min.cell,2
 min.features,55
 min_nFeature_RNA,45

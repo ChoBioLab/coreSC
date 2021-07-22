@@ -1,0 +1,267 @@
+---
+title: "Covid multiomic pilot clustering"
+author: "Christopher Tastad"
+date: "Last Edit: `r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+---
+
+```{r include = F}
+library(dplyr)
+library(ggplot2)
+library(Seurat)
+library(patchwork)
+library(Matrix)
+library(scico)
+
+knitr::opts_chunk$set(warning = F, message = F)
+```
+
+```{r}
+
+cp.1 <- Read10X(data.dir = "./cellranger/cp-1/sample_feature_bc_matrix")
+cp.2 <- Read10X(data.dir = "./cellranger/cp-2/filtered_feature_bc_matrix")
+cp.3 <- Read10X(data.dir = "./cellranger/cp-3/sample_feature_bc_matrix")
+cp.4 <- Read10X(data.dir = "./cellranger/cp-4/sample_feature_bc_matrix")
+cp.5 <- Read10X(data.dir = "./cellranger/cp-5/sample_feature_bc_matrix")
+cp.6 <- Read10X(data.dir = "./cellranger/cp-6/sample_feature_bc_matrix")
+cp.7 <- Read10X(data.dir = "./cellranger/cp-7/sample_feature_bc_matrix")
+cp.8 <- Read10X(data.dir = "./cellranger/cp-8/sample_feature_bc_matrix")
+
+sdata.cp1 <- CreateSeuratObject(cp.1, project = "cp_1")
+sdata.cp2 <- CreateSeuratObject(cp.2, project = "cp_2")
+sdata.cp3 <- CreateSeuratObject(cp.3, project = "cp_3")
+sdata.cp4 <- CreateSeuratObject(cp.4, project = "cp_4")
+sdata.cp5 <- CreateSeuratObject(cp.5, project = "cp_5")
+sdata.cp6 <- CreateSeuratObject(cp.6, project = "cp_6")
+sdata.cp7 <- CreateSeuratObject(cp.7, project = "cp_7")
+sdata.cp8 <- CreateSeuratObject(cp.8, project = "cp_8")
+
+sdata.cp1$type <- "low"
+sdata.cp2$type <- "medium"
+sdata.cp3$type <- "medium"
+sdata.cp4$type <- "medium"
+sdata.cp5$type <- "medium"
+sdata.cp6$type <- "high"
+sdata.cp7$type <- "high"
+sdata.cp8$type <- "high"
+
+alldata <- merge(sdata.cp1, c(sdata.cp2, sdata.cp3, sdata.cp4, sdata.cp5, sdata.cp6, sdata.cp7, sdata.cp8), all.cell.ids = c("sdata.cp1", "sdata.cp2", "sdata.cp3", "sdata.cp4", "sdata.cp5", "sdata.cp6", "sdata.cp7", "sdata.cp8"))
+
+alldata <- PercentageFeatureSet(alldata, "^MT-", col.name = "percent_mito")
+alldata <- PercentageFeatureSet(alldata, "^RP[SL]", col.name = "percent_ribo")
+```
+
+```{r eval = F}
+as.data.frame(alldata@assays$RNA@counts[1:10, 1:2])
+head(alldata@meta.data, 10)
+```
+
+# Plot raw QC
+
+```{r}
+feats <- c("nFeature_RNA", "nCount_RNA", "percent_mito", "percent_ribo")
+VlnPlot(alldata, group.by = "orig.ident", features = feats, pt.size = 0.0, ncol = 2) +
+  NoLegend()
+plot1 <- FeatureScatter(alldata, "nCount_RNA", "percent_mito", group.by = "orig.ident", pt.size = 0.5)
+plot2 <- FeatureScatter(alldata, "nCount_RNA", "nFeature_RNA", group.by = "orig.ident", pt.size = 0.5)
+plot1 + plot2
+```
+
+# Filtering
+
+- Original dimension of aggregated data set (genes x cells)
+
+```{r}
+dim(alldata)
+
+selected_c <- WhichCells(alldata, expression = nFeature_RNA > 200)
+selected_f <- rownames(alldata)[Matrix::rowSums(alldata) > 3]
+
+data.filt <- subset(alldata, features = selected_f, cells = selected_c)
+```
+
+---
+
+## Gene representation
+
+- Plot of genes of highest representation
+
+```{r}
+par(mar = c(4, 8, 2, 1))
+C <- data.filt@assays$RNA@counts
+C <- Matrix::t(Matrix::t(C) / Matrix::colSums(C)) * 100
+most_expressed <- order(apply(C, 1, median), decreasing = T)[20:1]
+boxplot(as.matrix(t(C[most_expressed, ])),
+  cex = 0.1, las = 1,
+  xlab = "% total count per cell",
+  col = (scales::hue_pal())(20)[20:1],
+  horizontal = TRUE
+)
+```
+
+---
+
+## Filtered cell counts
+
+- `percent_mito`: < 10%
+- `nFeature_RNA`: > 500
+- `nCount_RNA`: > 800
+- Using the Zhang 2020 params
+- May be too restrictive for this dataset, leaving too few cells meeting criteria.
+
+```{r}
+data.filt1 <- subset(data.filt,
+  subset = (percent_mito < 10) &
+    (nFeature_RNA > 500) &
+    (nCount_RNA > 800)
+)
+
+dim(data.filt1)
+table(data.filt1$orig.ident)
+```
+
+---
+
+## Relaxed criteria
+
+- `percent_mito`: < 20%
+- `nFeature_RNA`: > 200
+- `nCount_RNA`: > 200
+- Looser params allow for more sizable counts.
+- These are carried forward into clustering.
+
+```{r}
+data.filt <- subset(data.filt,
+  subset = (percent_mito < 20) &
+    (nFeature_RNA > 200) &
+    (nCount_RNA > 200)
+)
+
+dim(data.filt)
+table(data.filt$orig.ident)
+```
+
+## Plot filtered QC
+
+```{r}
+VlnPlot(data.filt, group.by = "orig.ident", features = feats, pt.size = 0.0, ncol = 2) +
+  NoLegend()
+```
+
+# Normalizing and scaling
+
+```{r}
+data.filt <- NormalizeData(data.filt, normalization.method = "LogNormalize", scale.factor = 10000)
+data.filt <- FindVariableFeatures(data.filt, selection.method = "vst", nfeatures = 2000)
+
+# Identify the 10 most highly variable genes
+top10 <- head(VariableFeatures(data.filt), 10)
+
+# plot variable features with and without labels
+plot1 <- VariableFeaturePlot(data.filt)
+LabelPoints(plot = plot1, points = top10, repel = TRUE)
+
+all.genes <- rownames(data.filt)
+data.filt <- ScaleData(data.filt, features = all.genes)
+```
+
+# Dimensional reduction
+
+- It looks like 10 components is a reasonable cutoff.
+
+```{r}
+data.filt <- RunPCA(data.filt, features = VariableFeatures(object = data.filt))
+print(data.filt[["pca"]], dims = 1:10, nfeatures = 10)
+VizDimLoadings(data.filt, dims = 1:2, reduction = "pca")
+data.filt <- JackStraw(data.filt, num.replicate = 100)
+data.filt <- ScoreJackStraw(data.filt, dims = 1:20)
+JackStrawPlot(data.filt, dims = 1:15)
+ElbowPlot(data.filt)
+```
+
+# Clustering
+
+- Cell counts given by cluster
+
+```{r}
+data.filt <- FindNeighbors(data.filt, dims = 1:10)
+data.filt <- FindClusters(data.filt, resolution = 0.5)
+data.filt <- RunUMAP(data.filt, dims = 1:10)
+table(data.filt$seurat_clusters)
+DimPlot(data.filt, reduction = "umap")
+DimPlot(data.filt, reduction = "umap", group.by = "orig.ident")
+DimPlot(data.filt, reduction = "umap", group.by = "type")
+```
+
+## DE features
+
+- CD34 not present in data.
+
+```{r echo = T, warning = T, error = 0}
+data.filt.markers %>% filter(gene == "CD34")
+```
+
+```{r}
+# find markers for every cluster compared to all remaining cells, report only the positive ones
+data.filt.markers <- FindAllMarkers(data.filt, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+data.filt.markers %>%
+    group_by(cluster) %>%
+    top_n(n = 2, wt = avg_log2FC)
+
+top10 <- data.filt.markers %>%
+    group_by(cluster) %>%
+    top_n(n = 10, wt = avg_log2FC)
+
+DoHeatmap(data.filt, features = top10$gene) + NoLegend() + theme(text = element_text(size = 5))
+```
+
+## Cluster marker assignment
+
+```{r}
+FeaturePlot(data.filt, features = c("CD3E", "CD3D", "CCR7", "PRF1", "SLC4A10", "CD1C", "LILRA4", "PPBP", "MS4A1"), pt.size = 0.0)
+FeaturePlot(data.filt, features = c("MZB1", "CD14", "LYZ", "FCGR3A", "TRAV1-2", "TRGV9", "TRDV2", "C17", "CYTL1"), pt.size = 0.0)
+FeaturePlot(data.filt, features = c("GATA2", "CD34", "MKI67", "KLRF1"), pt.size = 0.0)
+VlnPlot(data.filt, features = c("CD3E", "CD3D", "CCR7", "PRF1", "SLC4A10", "CD1C", "LILRA4", "PPBP", "MS4A1"), pt.size = 0.0)
+VlnPlot(data.filt, features = c("MZB1", "CD14", "LYZ", "FCGR3A", "TRAV1-2", "TRGV9", "TRDV2", "C17", "CYTL1"), pt.size = 0.0)
+VlnPlot(data.filt, features = c("GATA2", "CD34", "MKI67", "KLRF1"), pt.size = 0.0)
+```
+
+# Stem Cell Investigation
+
+```{r}
+scmarkers <- c("CD34", "CYTL1", "GATA2")
+#selected_sc <- rownames(alldata)[Matrix::rowSums(alldata) > 0]
+#scdata <- subset(alldata, features = selected_sc)
+#scdata <- subset(alldata, CD34 > 0 | GATA2 > 0 | CYTL1 > 0)
+#dim(scdata)
+VlnPlot(alldata, features = scmarkers, pt.size = 0.0)
+
+alldata1 <- NormalizeData(alldata, normalization.method = "LogNormalize", scale.factor = 10000)
+alldata1 <- ScaleData(alldata1, features = all.genes)
+
+alldata1 <- RunPCA(alldata1, features = VariableFeatures(object = data.filt))
+
+alldata1 <- FindNeighbors(alldata1, dims = 1:10)
+alldata1 <- FindClusters(alldata1, resolution = 0.5)
+alldata1 <- RunUMAP(alldata1, dims = 1:10)
+table(alldata1$seurat_clusters)
+DimPlot(alldata1, reduction = "umap")
+
+FeaturePlot(alldata1, features = c("CD3E", "CD3D", "CCR7", "PRF1", "SLC4A10", "CD1C", "LILRA4", "PPBP", "MS4A1"), pt.size = 0.0)
+FeaturePlot(alldata1, features = c("MZB1", "CD14", "LYZ", "FCGR3A", "TRAV1-2", "TRGV9", "TRDV2", "C17", "CYTL1"), pt.size = 0.0)
+FeaturePlot(alldata1, features = c("GATA2", "CD34", "MKI67", "KLRF1"), pt.size = 0.0)
+VlnPlot(alldata1, features = c("CD3E", "CD3D", "CCR7", "PRF1", "SLC4A10", "CD1C", "LILRA4", "PPBP", "MS4A1"), pt.size = 0.0)
+VlnPlot(alldata1, features = c("MZB1", "CD14", "LYZ", "FCGR3A", "TRAV1-2", "TRGV9", "TRDV2", "C17", "CYTL1"), pt.size = 0.0)
+VlnPlot(alldata1, features = c("GATA2", "CD34", "MKI67", "KLRF1"), pt.size = 0.0)
+```
+
+```{r}
+saveRDS(data.filt, file = "./covid_multi_pilot.rds")
+sessionInfo()
+```
+

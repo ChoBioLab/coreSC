@@ -1,11 +1,37 @@
 # !/usr/bin/env Rscript
 
-params <- read.csv("./config/params.csv", row.names = 1)
-
 # install.packages("Seurat","dplyr","cowplot")
 library(Seurat)
 library(dplyr)
 library(cowplot)
+
+params <- read.csv("./config/params.csv", row.names = 1)
+
+# Convenience functions
+#https://support.parsebiosciences.com/hc/en-us/articles/360053078092-Seurat-Tutorial-65k-PBMCs
+save_figure <- function(plots, name, type = "png", width, height, res){
+  if(type == "png") {
+    png(paste0(fig_path, name, ".", type),
+      width = width, height = height, units = "in", res = 200)
+  } else {
+    pdf(paste0(fig_path, name, ".", type),
+      width = width, height = height)
+}
+print(plots)
+dev.off()
+}
+
+save_object <- function(object, name){
+  saveRDS(object, paste0(data_path, name, ".RDS"))
+}
+
+read_object <- function(name){
+  readRDS(paste0(data_path, name, ".RDS"))
+}
+
+
+
+
 
 
 # The integrate function. Change the dimensions as per need####
@@ -23,7 +49,6 @@ integrate <- function(data) {
 }
 
 # Creating seurat objects from raw files. Change min # of RNA feature ###
-
 seurat_object <- function(file_name, p.dir, s, g) {
   object <- Read10X(data.dir = paste0(p.dir, "/", file_name))
   colnames(x = object) <- paste(s, colnames(x = object), sep = "_")
@@ -36,8 +61,6 @@ seurat_object <- function(file_name, p.dir, s, g) {
   object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = 2000)
   return(object)
 }
-
-
 
 my_Dimplot <- function(data) {
   p1 <- DimPlot(data, reduction = "umap", group.by = "group")
@@ -61,8 +84,6 @@ my_vlnplot <- function(data, markers) {
   return(plot(a3))
   dev.off()
 }
-
-
 
 my_tsne <- function(data) {
   p1 <- TSNEPlot(data, pt.size = 0.5, group.by = "group")
