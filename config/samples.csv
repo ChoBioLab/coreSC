@@ -1,1 +1,4 @@
 name,dir,project,group
+input,/home/chris/Downloads/matrixes/sample_feature_bc_matrix_h2,projectname,human2
+h1,/home/chris/Downloads/matrixes/raw_feature_bc_matrix_input,projectname,input
+h2,/home/chris/Downloads/matrixes/sample_feature_bc_matrix_h1,projectname,human1
