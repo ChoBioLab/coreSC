@@ -4,6 +4,13 @@
 # PREAMBLE
 ################################################################################
 
+# capture bash vars
+args <- commandArgs(trailingOnly = T)
+
+out_path <- paste0("./output/", args[1], "/")
+params <- read.csv("./config/params.csv", row.names = 1)
+samples <- read.csv("./config/samples.csv")
+
 # package install check and load
 packages <- c(
   "Seurat",
@@ -13,7 +20,6 @@ packages <- c(
   "patchwork"
 )
 
-# https://vbaliga.github.io/verify-that-r-packages-are-installed-and-loaded/
 package_check <- lapply(
   packages,
   function(x) {
@@ -24,18 +30,14 @@ package_check <- lapply(
   }
 )
 
-params <- read.csv("./config/params.csv", row.names = 1)
-samples <- read.csv("./config/samples.csv")
-
 # convenience functions
-# https://support.parsebiosciences.com/hc/en-us/articles/360053078092-Seurat-Tutorial-65k-PBMCs
 save_figure <- function(plots, name, type = "png", width, height, res) {
   if (type == "png") {
-    png(paste0(fig_path, name, ".", type),
+    png(paste0(out_path, name, ".", type),
       width = width, height = height, units = "in", res = 200
     )
   } else {
-    pdf(paste0(fig_path, name, ".", type),
+    pdf(paste0(out_path, name, ".", type),
       width = width, height = height
     )
   }
@@ -47,17 +49,10 @@ save_object <- function(object, name) {
   saveRDS(object, paste0(data_path, name, ".RDS"))
 }
 
-read_object <- function(name) {
-  readRDS(paste0(data_path, name, ".RDS"))
-}
-
-# create list of seurat objects
-objects <- list()
-for (i in samples$name) {
-  objects <- c(objects, get(i))
-}
-
+################################################################################
 # object creation
+################################################################################
+
 for (i in 1:nrow(samples)) {
   x <- Read10X(
     data.dir = samples$dir[i]
@@ -65,11 +60,48 @@ for (i in 1:nrow(samples)) {
     CreateSeuratObject(
       project = samples$project[i],
       min.cells = params["min.cells", ]
-    ) %>%
-    subset(
-      nCount_RNA > params["min_nCount", ] &
-        nCount_RNA < params["max_nCount", ]
-    ) %>%
+    )
+  x[["percent.mt"]] <- PercentageFeatureSet(
+    x,
+    pattern = "^MT-"
+  )
+  plot <- VlnPlot(
+    x,
+    features = c(
+      "nFeature_RNA",
+      "nCount_RNA",
+      "percent.mt"
+    ),
+    ncol = 3
+  )
+  plot1 <- FeatureScatter(
+    x,
+    feature1 = "nCount_RNA",
+    feature2 = "percent.mt"
+  )
+  plot2 <- FeatureScatter(
+    x,
+    feature1 = "nCount_RNA",
+    feature2 = "nFeature_RNA"
+  )
+  save_figure(
+    plot,
+    paste0(samples$name[i], "_unfilt_vln"),
+    width = 12,
+    height = 6
+  )
+  save_figure(
+    (plot1 + plot2),
+    paste0(samples$name[i], "_unfilt_scatter"),
+    width = 12,
+    height = 6
+  )
+  x <- subset(
+    x,
+    nCount_RNA > params["min_nCount", ] &
+      nCount_RNA < params["max_nCount", ] &
+      percent.mt < params["percent.mt", ]
+  ) %>%
     NormalizeData()
   all.set <- rownames(x)
   x <- ScaleData(
@@ -82,13 +114,26 @@ for (i in 1:nrow(samples)) {
       nfeatures = params["max_nFeatures", ]
     )
   x@meta.data$object <- samples$name[i]
-  assign(samples$name[i], x)
-  testlist <- list(testlist, samples$name[i])
+  x@meta.data$group <- samples$group[i]
+  assign(
+    samples$name[i],
+    x
+  )
 }
 
+# create list of seurat objects
+objects <- list()
+for (i in samples$name) {
+  objects <- c(objects, get(i))
+}
+
+################################################################################
+# integration
+################################################################################
+
 # sample integration
-  for (i in 1:nrow(samples)) {
-  d <- params["dims",]
+for (i in 1:nrow(samples)) {
+  d <- params["dims", ]
   x <- FindIntegrationAnchors(
     object.list = objects,
     dims = 1:d
@@ -99,7 +144,7 @@ for (i in 1:nrow(samples)) {
   )
   DefaultAssay(x) <- "integrated"
   all.genes <- rownames(x)
-  x <- ScaleData(
+  integrated <- ScaleData(
     x,
     verbose = FALSE,
     features = all.genes
@@ -121,80 +166,55 @@ for (i in 1:nrow(samples)) {
     )
 }
 
-# my_Dimplot <- function(data) {
-#  p1 <- DimPlot(data, reduction = "umap", group.by = "group")
-#  p2 <- DimPlot(data, reduction = "umap", label = TRUE)
-#  p123 <- plot_grid(p1, p2)
-#  png(filename = "Dim_PLot.png")
-#  return(plot(p123))
-#  dev.off()
+################################################################################
+# visualization
+################################################################################
+
+## visualzing linear dim reduction
+# for (i in objects) {
+# VizDimLoadings(i, dims = 1:2, reduction = "pca")
+# DimPlot(i, reduction = "pca")
+# DimHeatmap(i, dims = 1:15, cells = 500, balanced = TRUE)
+# JackStrawPlot(i, dims = 1:15)
+# ElbowPlot(i)
 # }
 #
-# my_dimheat <- function(data, markers) {
-#  a2 <- DoHeatmap(object = data, features = markers)
-#  png(filename = "heatmap.png")
-#  return(plot(a2))
-#  dev.off()
-# }
 #
-# my_vlnplot <- function(data, markers) {
-#  a3 <- VlnPlot(object = data, features = markers)
-#  png(filename = "VlnplotCombinedall.png")
-#  return(plot(a3))
-#  dev.off()
-# }
+## visualzing non-linear dim reduction
+# dimheat <- DimHeatmap(
+#  integrated,
+#  dims = 1:params["dims", ],
+#  cells = 500,
+#  balanced = TRUE
+# )
+# JackStrawPlot(integrated, dims = 1:15)
+# ElbowPlot(integrated)
 #
-# my_tsne <- function(data) {
-#  p1 <- TSNEPlot(data, pt.size = 0.5, group.by = "group")
-#  p2 <- TSNEPlot(data, pt.size = 0.8)
-#  p3 <- plot_grid(p1, p2)
-#
-#  png(filename = "TSNE_Combinedall.png")
-#  return(plot(p3))
-#  dev.off()
-# }
+# save_figure(
+#            dimheat,
+#            "integrated_dimheat_red",
+#            width = 12,
+#            height = 6
+#            )
 
-##############################
-# Script, change the PATH
-##############################
+plot1 <- DimPlot(
+  integrated,
+  reduction = "umap",
+  group.by = "group"
+)
 
-# files <- list.files("/Volumes/Back_up2_MG/Naiyun/UC/Count")
-# p.dir <- "/Volumes/Back_up2_MG/Naiyun/UC/Count"
-#
-## you can create group label as per the variable names below, this list is manual as of now ###
-# new.group <- c("inflamed", "uninflamed", "inflamed", "uninflamed", "inflamed", "uninflamed", "inflamed", "uninflamed", "uninflamed")
-# names <- files
+plot2 <- DimPlot(
+  integrated,
+  reduction = "umap",
+  label = T
+)
 
+save_figure(
+  (plot1 + plot2),
+  "integrated_dimplot_red",
+  width = 12,
+  height = 6
+)
 
-## Calling create seurat object function on each file ####
-j <- 0
-for (i in names) {{ j <- j + 1
-  assign(i, seurat_object(i, p.dir, paste0("S", j), paste0("mygene.", j))) }}
-
-
-### assigning the group names created above, comment out if not needed ####
-gp <- 0
-for (i in names) {
-  gp <- gp + 1
-  Object <- get(paste0(i))
-  Object@meta.data$group <- new.group[gp]
-  assign(i, Object)
-  print(new.group[gp])
-}
-
-
-## creating the list for integartion ####
-### define you gene names for the markers ###
-
-# mymarkers <- c("", "") # fill your genes of interest
-
-# immune.combinedall <- integrate(Hall)
-# my_Dimplot(immune.combinedall)
-# my_dimheat(immune.combinedall,mymarkers)
-# my_vlnplot(immune.combinedall,mymarkersnewCluster<-readRDS("IntegratedCD_3_0.rds))
-# my_tsne(immune.combinedall)
-
-
-# save.image(file="MyData.RData")
-
-saveRDS(immune.combinedall, file = "Integratedmodel_3_0.rds")
+saveRDS(integrated, file = paste0(out_path, "integrated_output.rds"))
+# save.image(file = paste0("./output/", file_dir, "workspace.Rdata"))

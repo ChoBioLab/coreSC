@@ -1,1 +1,9 @@
 #!/bin/bash
+
+TIMESTAMP=$(date +"%Y-%m-%d_%T")
+OUT_DIR=output_$TIMESTAMP
+
+mkdir ./output/$OUT_DIR
+
+Rscript core.R $OUT_DIR
+
