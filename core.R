@@ -33,8 +33,21 @@ read_object <- function(name){
 
 
 
-# iterate using is the method
-samples$dir[1]
+
+for (i in 1:nrow(samples)) {
+  x <- Read10X(data.dir = samples$dir[i])
+  #colnames(x = object) <- paste(s, colnames(x = object), sep = "_")
+  x <- CreateSeuratObject(x, project = samples$project[i], min.cells = params["min.cells",])
+  x@meta.data$object <- samples$name[i]
+  x <- subset(x, subset = nCount_RNA > params["min_nCount",] & nCount_RNA < params["max_nCount",])
+  x <- NormalizeData(x)
+  all.set <- rownames(x)
+  x <- ScaleData(x, verbose = F, features = all.set)
+  x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = params["max_nFeatures",])
+  assign(samples$name[i], x)
+}
+
+
 
 
 
@@ -55,7 +68,7 @@ integrate <- function(data) {
 # Creating seurat objects from raw files. Change min # of RNA feature ###
 seurat_object <- function(file_name) {
   object <- Read10X(data.dir = samples$dir)
-  #colnames(x = object) <- paste(s, colnames(x = object), sep = "_")
+  colnames(x = object) <- paste(s, colnames(x = object), sep = "_")
   object <- CreateSeuratObject(object, project = samples$project, min.cells = params["min.cell",])
   object@meta.data$object <- file_name
   object <- subset(object, subset = nCount_RNA > params["min_nFeature_RNA",] & nCount_RNA < params["max_nFeature_RNA",])

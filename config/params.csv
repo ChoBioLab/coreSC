@@ -1,8 +1,8 @@
 var,value
 root_dir,/tmp
-min.cell,5
-min.features,55
-min_nFeature_RNA,500
-max_nFeature_RNA,60000
+min.cells,5
+min_nCount,500
+max_nCount,60000
+min_nFeatures,200
+max_nFeatures,2000
 percent.mt,30
-nfeatures,2000
