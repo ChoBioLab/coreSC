@@ -1,8 +1,8 @@
 var,value
-root_dir,/tmp
 min.cells,5
 min_nCount,500
 max_nCount,60000
 min_nFeatures,200
 max_nFeatures,2000
 percent.mt,30
+dims,20
