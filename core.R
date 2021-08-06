@@ -49,6 +49,10 @@ save_object <- function(object, name) {
   saveRDS(object, paste0(data_path, name, ".RDS"))
 }
 
+read_object <- function(name){
+  readRDS(paste0(data_path, name, ".RDS"))
+}
+
 ################################################################################
 # OBJECT CREATION
 ################################################################################
@@ -60,7 +64,7 @@ for (i in 1:nrow(samples)) {
     CreateSeuratObject(
       project = samples$project[i],
       min.cells = params["min.cells", ],
-      min.features = params["min_nFeatures", ]
+      min.features = params["min.features", ]
     )
   x[["percent.mt"]] <- PercentageFeatureSet(
     x,
@@ -99,8 +103,8 @@ for (i in 1:nrow(samples)) {
   )
   x <- subset(
     x,
-    nCount_RNA > params["min_nCount", ] &
-      nCount_RNA < params["max_nCount", ] &
+    nCount_RNA > params["min.count", ] &
+      nCount_RNA < params["max.count", ] &
       percent.mt < params["percent.mt", ]
   ) %>%
     NormalizeData()
@@ -112,7 +116,7 @@ for (i in 1:nrow(samples)) {
   ) %>%
     FindVariableFeatures(
       selection.method = "vst",
-      nfeatures = params["max_nFeatures", ]
+      nfeatures = params["max.features", ]
     )
   x@meta.data$object <- samples$name[i]
   x@meta.data$group <- samples$group[i]

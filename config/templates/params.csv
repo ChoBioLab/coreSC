@@ -1,0 +1,9 @@
+var,value
+min.cells,3
+min.count,500
+max.count,60000
+min.features,200
+max.features,2000
+percent.mt,30
+dims,20
+
