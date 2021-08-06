@@ -59,11 +59,12 @@ for (i in 1:nrow(samples)) {
   ) %>%
     CreateSeuratObject(
       project = samples$project[i],
-      min.cells = params["min.cells", ]
+      min.cells = params["min.cells", ],
+      min.features = params["min_nFeatures", ]
     )
   x[["percent.mt"]] <- PercentageFeatureSet(
     x,
-    pattern = "^MT-"
+    pattern = "(?i)^MT-"
   )
   plot <- VlnPlot(
     x,
