@@ -2,8 +2,9 @@
 
 TIMESTAMP=$(date +"%Y-%m-%d_%T")
 OUT_DIR=output_$TIMESTAMP
+LOG_FILE=output/$OUT_DIR/log.txt
 
 mkdir -p ./output/$OUT_DIR
 
-Rscript core.R $OUT_DIR
+Rscript core.R $OUT_DIR |& tee $LOG_FILE
 
