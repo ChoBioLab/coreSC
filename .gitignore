@@ -1,4 +1,6 @@
 output/
+tmp/
 *.Rhistory
 *.swp
 config/*.csv*
+*.RData

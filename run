@@ -1,10 +1,15 @@
 #!/bin/bash
 
-TIMESTAMP=$(date +"%Y-%m-%d_%T")
+TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
 OUT_DIR=output_$TIMESTAMP
 LOG_FILE=output/$OUT_DIR/log.txt
 
 mkdir -p ./output/$OUT_DIR
 
-Rscript core.R $OUT_DIR |& tee $LOG_FILE
+Rscript ./scripts/preamble.R $OUT_DIR |& tee -a $LOG_FILE
+Rscript ./scripts/create_object.R $OUT_DIR |& tee -a $LOG_FILE
+Rscript ./scripts/integrate.R $OUT_DIR |& tee -a $LOG_FILE
+Rscript ./scripts/merge.R $OUT_DIR |& tee -a $LOG_FILE
+Rscript ./scripts/visualize.R $OUT_DIR |& tee -a $LOG_FILE
 
+rm ./tmp/*
