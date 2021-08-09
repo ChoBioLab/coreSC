@@ -3,7 +3,7 @@
 # capture bash vars
 args <- commandArgs(trailingOnly = T)
 
-out_path <- paste0("./output/", args[1], "/")
+out_path <- paste0(args[1], "/")
 params <- read.csv("./config/params.csv", row.names = 1)
 samples <- read.csv("./config/samples.csv")
 

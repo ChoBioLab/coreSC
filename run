@@ -1,15 +1,73 @@
 #!/bin/bash
 
+set -euo pipefail
+
+function on_failure {
+    echo "${0##*/}" "has failed"
+    echo "The script" "${0##*/}" "has failed"
+}
+
+trap on_failure ERR
+
 TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
-OUT_DIR=output_$TIMESTAMP
-LOG_FILE=output/$OUT_DIR/log.txt
+check_begin=0
+check_end=3
 
-mkdir -p ./output/$OUT_DIR
+SCRIPTS=(
+    "preamble.R"
+    "create_object.R"
+    "integrate.R"
+    "visualize.R"
+)
 
-Rscript ./scripts/preamble.R $OUT_DIR |& tee -a $LOG_FILE
-Rscript ./scripts/create_object.R $OUT_DIR |& tee -a $LOG_FILE
-Rscript ./scripts/integrate.R $OUT_DIR |& tee -a $LOG_FILE
-Rscript ./scripts/merge.R $OUT_DIR |& tee -a $LOG_FILE
-Rscript ./scripts/visualize.R $OUT_DIR |& tee -a $LOG_FILE
+# pass arguments from cli
+while getopts b:e:i:m: option
+do
+    case "${option}"
+        in
+        b) check_begin=${OPTARG};;
+        e) check_end=${OPTARG};;
+        i) check_input=${OPTARG};;
+        m) merge_combine=${OPTARG};;
+    esac
+done
+
+if [[ $check_begin -ne 0 ]]
+then
+    echo "not 0"
+    if [[ -z $check_input ]]
+    then
+        echo "check_input value required for custom start point"
+    else
+        OUT_DIR="output/${check_input}"
+        check_begin=$((check_begin - 1))
+        echo "$check_begin"
+    fi
+else
+    echo "is 0"
+    OUT_DIR="output/output_$TIMESTAMP"
+    mkdir -p $OUT_DIR
+fi
+
+if [[ "${merge_combine:-}" == "T" ]]
+then
+    echo "Combining samples using merge"
+    SCRIPTS=("${SCRIPTS[@]/integrate/merge}")
+    echo "${SCRIPTS[@]}"
+else
+    echo "Combining samples using integration"
+fi
+
+
+if [[ $check_end -ne 3 ]]
+then
+    check_end=$((check_end - 1))
+    echo "$check_end"
+fi
+
+for i in $(eval echo "{$check_begin..$check_end}")
+do
+    Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
+done
 
 rm ./tmp/*
