@@ -17,10 +17,7 @@ for (i in 1:nrow(samples)) {
     dims = 1:d
   )
   DefaultAssay(x) <- "integrated"
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Integrated"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Integrated")
   all.genes <- rownames(x)
   x <- ScaleData(
     x,
@@ -37,10 +34,7 @@ for (i in 1:nrow(samples)) {
     reduction = "pca",
     dims = 1:d
   )
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Reduced"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Reduced")
   x <- FindNeighbors(
     x,
     reduction = "pca",
@@ -50,10 +44,7 @@ for (i in 1:nrow(samples)) {
     x,
     resolution = 0.6
   )
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Clustered"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Clustered")
 }
 
 save_object(x, "combined_integrated")

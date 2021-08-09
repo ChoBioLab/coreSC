@@ -47,6 +47,19 @@ read_object <- function(name) {
   readRDS(paste0(out_path, name, ".RDS"))
 }
 
+str_section_head <- function(title) {
+  message("")
+  message(strrep("=", 80))
+  message(strrep("=", 80))
+  message("")
+  message(paste(samples$name[i], title))
+  message("")
+  message(strrep("=", 80))
+  message(strrep("=", 80))
+  message("")
+  str(x)
+}
+
 save.image("./tmp/base_image.RData")
 
 print("end of preamble")

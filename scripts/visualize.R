@@ -89,4 +89,3 @@ save_figure(
   width = 12,
   height = 6
 )
-

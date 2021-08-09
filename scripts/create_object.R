@@ -9,10 +9,7 @@ for (i in 1:nrow(samples)) {
   x <- Read10X(
     data.dir = samples$dir[i]
   )
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Raw Object"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Raw Object")
   x <- CreateSeuratObject(
     counts = x,
     project = samples$project[i],
@@ -23,10 +20,7 @@ for (i in 1:nrow(samples)) {
     x,
     pattern = "(?i)^MT-"
   )
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Base Seurat Object"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Base Seurat Object")
   x <- subset(
     x,
     nCount_RNA > params["min.count", ] &
@@ -34,10 +28,7 @@ for (i in 1:nrow(samples)) {
       percent.mt < params["percent.mt", ]
   )
   x <- NormalizeData(x)
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Subset, Normalized"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Subset, Normalized")
   genes <- rownames(x)
   x <- ScaleData(
     x,
@@ -55,10 +46,7 @@ for (i in 1:nrow(samples)) {
     samples$name[i],
     x
   )
-  message(strrep("=", 80))
-  message(paste(samples$name[i], "Scaled"))
-  message(strrep("=", 80))
-  str(x)
+  str_section_head("Scaled")
 }
 
 # create and save list of seurat objects
