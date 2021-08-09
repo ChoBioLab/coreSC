@@ -89,3 +89,5 @@ save_figure(
   width = 12,
   height = 6
 )
+
+print("End of visualize.R")

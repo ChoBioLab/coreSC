@@ -62,4 +62,4 @@ str_section_head <- function(title) {
 
 save.image("./tmp/base_image.RData")
 
-print("end of preamble")
+print("End of preamble.R")

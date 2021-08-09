@@ -48,3 +48,5 @@ for (i in 1:nrow(samples)) {
 }
 
 save_object(x, "combined_integrated")
+
+print("End of integrate.R")

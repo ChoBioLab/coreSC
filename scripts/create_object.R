@@ -63,3 +63,5 @@ for (i in samples$name) {
 }
 
 saveRDS(objects, "./tmp/objects.RDS")
+
+print("End of create_object.R")

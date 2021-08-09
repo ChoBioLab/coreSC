@@ -34,22 +34,20 @@ done
 
 if [[ $check_begin -ne 0 ]]
 then
-    echo "not 0"
-    if [[ -z $check_input ]]
+    if [[ -z "$check_input" ]]
     then
         echo "check_input value required for custom start point"
     else
         OUT_DIR="output/${check_input}"
         check_begin=$((check_begin - 1))
-        echo "$check_begin"
+        Rscript ./scripts/preamble.R $OUT_DIR |& tee -a $OUT_DIR/log.txt
     fi
 else
-    echo "is 0"
     OUT_DIR="output/output_$TIMESTAMP"
     mkdir -p $OUT_DIR
 fi
 
-if [[ "${merge_combine:-}" == "T" ]]
+if [[ "${merge_combine:-}" == "TRUE" ]]
 then
     echo "Combining samples using merge"
     SCRIPTS=("${SCRIPTS[@]/integrate/merge}")
@@ -70,4 +68,4 @@ do
     Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
 done
 
-rm ./tmp/*
+#rm ./tmp/*
