@@ -4,7 +4,7 @@ library(Seurat)
 library(dplyr)
 
 load("./tmp/base_image.RData")
-objects <- readRDS("./tmp/objects.RDS")
+objects <- read_object("individual_objects")
 
 for (i in 1:nrow(samples)) {
   d <- params["dims", ]

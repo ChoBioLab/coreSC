@@ -3,7 +3,6 @@
 set -euo pipefail
 
 function on_failure {
-    echo "${0##*/}" "has failed"
     echo "The script" "${0##*/}" "has failed"
 }
 
@@ -68,4 +67,4 @@ do
     Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
 done
 
-#rm ./tmp/*
+rm ./tmp/*

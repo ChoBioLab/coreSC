@@ -6,8 +6,8 @@ library(cowplot)
 library(patchwork)
 
 load("./tmp/base_image.RData")
-objects <- readRDS("./tmp/objects.RDS")
-combined <- readRDS(paste0(out_path, "combined_integrated.RDS"))
+objects <- read_object("individual_objects")
+combined <- read_object("combined_integrated")
 
 # individual sample qc
 for (i in 1:nrow(samples)) {

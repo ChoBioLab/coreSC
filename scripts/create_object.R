@@ -56,12 +56,8 @@ for (i in samples$name) {
     objects,
     get(i)
   )
-  save_object(
-    get(i),
-    paste0(i, "_normed_scaled")
-  )
 }
 
-saveRDS(objects, "./tmp/objects.RDS")
+save_object(objects, "individual_objects")
 
 print("End of create_object.R")
