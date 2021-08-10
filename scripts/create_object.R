@@ -6,11 +6,11 @@ library(dplyr)
 load("./tmp/base_image.RData")
 
 for (i in 1:nrow(samples)) {
-  x <- Read10X(
+  x <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
   )
-  str_section_head("Raw Object")
-  x <- CreateSeuratObject(
+  str_section_head("Raw Object") # logging
+  x <- CreateSeuratObject( # certain data will gen null matrix sans filters
     counts = x,
     project = samples$project[i],
     min.cells = params["min.cells", ],
@@ -20,7 +20,7 @@ for (i in 1:nrow(samples)) {
     x,
     pattern = "(?i)^MT-"
   )
-  str_section_head("Base Seurat Object")
+  str_section_head("Base Seurat Object") # logging
   x <- subset(
     x,
     nCount_RNA > params["min.count", ] &
@@ -28,7 +28,7 @@ for (i in 1:nrow(samples)) {
       percent.mt < params["percent.mt", ]
   )
   x <- NormalizeData(x)
-  str_section_head("Subset, Normalized")
+  str_section_head("Subset, Normalized") # logging
   genes <- rownames(x)
   x <- ScaleData(
     x,
@@ -46,7 +46,7 @@ for (i in 1:nrow(samples)) {
     samples$name[i],
     x
   )
-  str_section_head("Scaled")
+  str_section_head("Scaled") # logging
 }
 
 # create and save list of seurat objects
@@ -54,7 +54,7 @@ objects <- list()
 for (i in samples$name) {
   objects <- c(
     objects,
-    get(i)
+    get(i) # need get() to call object instead of string
   )
 }
 

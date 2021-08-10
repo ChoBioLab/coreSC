@@ -17,7 +17,7 @@ for (i in 1:nrow(samples)) {
     dims = 1:d
   )
   DefaultAssay(x) <- "integrated"
-  str_section_head("Integrated")
+  str_section_head("Integrated") # logging
   all.genes <- rownames(x)
   x <- ScaleData(
     x,
@@ -34,7 +34,7 @@ for (i in 1:nrow(samples)) {
     reduction = "pca",
     dims = 1:d
   )
-  str_section_head("Reduced")
+  str_section_head("Reduced") # logging
   x <- FindNeighbors(
     x,
     reduction = "pca",
@@ -44,7 +44,7 @@ for (i in 1:nrow(samples)) {
     x,
     resolution = 0.6
   )
-  str_section_head("Clustered")
+  str_section_head("Clustered") # logging
 }
 
 save_object(x, "combined_integrated")
