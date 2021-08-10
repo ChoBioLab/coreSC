@@ -9,7 +9,7 @@ function on_failure {
 trap on_failure ERR
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
-check_begin=0
+check_begin=0 # process number iterates from 1 for user
 check_end=3
 
 SCRIPTS=(
@@ -31,6 +31,7 @@ do
     esac
 done
 
+# do check for custom start
 if [[ $check_begin -ne 0 ]]
 then
     if [[ -z "$check_input" ]]
@@ -43,9 +44,10 @@ then
     fi
 else
     OUT_DIR="output/output_$TIMESTAMP"
-    mkdir -p $OUT_DIR
+    mkdir -p $OUT_DIR tmp
 fi
 
+# do check for sample combine preference
 if [[ "${merge_combine:-}" == "TRUE" ]]
 then
     echo "Combining samples using merge"
@@ -55,13 +57,14 @@ else
     echo "Combining samples using integration"
 fi
 
-
+# adjust index from human to bash
 if [[ $check_end -ne 3 ]]
 then
     check_end=$((check_end - 1))
     echo "$check_end"
 fi
 
+# execute pipeline scripts
 for i in $(eval echo "{$check_begin..$check_end}")
 do
     Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
