@@ -8,6 +8,7 @@ function on_failure {
 
 trap on_failure ERR
 
+cd /data
 TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
 check_begin=0 # process number iterates from 1 for user
 check_end=3
@@ -38,12 +39,12 @@ then
     then
         echo "check_input value required for custom start point"
     else
-        OUT_DIR="output/${check_input}"
+        OUT_DIR="/data/seurat_output/${check_input}"
         check_begin=$((check_begin - 1))
         Rscript ./scripts/preamble.R $OUT_DIR |& tee -a $OUT_DIR/log.txt
     fi
 else
-    OUT_DIR="output/output_$TIMESTAMP"
+    OUT_DIR="/data/seurat_output/output_$TIMESTAMP"
     mkdir -p $OUT_DIR tmp
 fi
 
@@ -67,7 +68,7 @@ fi
 # execute pipeline scripts
 for i in $(eval echo "{$check_begin..$check_end}")
 do
-    Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
+    Rscript ./app/scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
 done
 
 rm ./tmp/*
