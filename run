@@ -70,4 +70,5 @@ do
     Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
 done
 
+cp ./config/params.csv ./config/samples.csv $OUT_DIR
 rm ./tmp/*
