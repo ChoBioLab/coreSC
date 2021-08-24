@@ -41,7 +41,7 @@ x <- FindNeighbors(
 )
 x <- FindClusters(
   x,
-  resolution = 0.6
+  resolution = params["res", ]
 )
 str_section_head("Clustered") # logging
 
