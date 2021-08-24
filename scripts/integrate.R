@@ -4,7 +4,7 @@ library(Seurat)
 library(dplyr)
 
 load("./tmp/base_image.RData")
-objects <- read_object("individual_objects")
+objects <- readRDS("./tmp/individual_objects")
 
 d <- params["dims", ]
 x <- FindIntegrationAnchors(
@@ -16,7 +16,7 @@ x <- IntegrateData(
   dims = 1:d
 )
 DefaultAssay(x) <- "integrated"
-str_section_head("Integrated") # logging
+str_section_noloop("Integrated") # logging
 all.genes <- rownames(x)
 x <- ScaleData(
   x,
@@ -33,7 +33,7 @@ x <- RunUMAP(
   reduction = "pca",
   dims = 1:d
 )
-str_section_head("Reduced") # logging
+str_section_noloop("Reduced") # logging
 x <- FindNeighbors(
   x,
   reduction = "pca",
@@ -43,7 +43,7 @@ x <- FindClusters(
   x,
   resolution = params["res", ]
 )
-str_section_head("Clustered") # logging
+str_section_noloop("Clustered") # logging
 
 save_object(x, "combined_integrated")
 
