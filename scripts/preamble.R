@@ -60,6 +60,19 @@ str_section_head <- function(title) {
   str(x)
 }
 
+str_section_noloop <- function(title) {
+  message("")
+  message(strrep("=", 80))
+  message(strrep("=", 80))
+  message("")
+  message(paste(title))
+  message("")
+  message(strrep("=", 80))
+  message(strrep("=", 80))
+  message("")
+  str(x)
+}
+
 save.image("./tmp/base_image.RData")
 
 print("End of preamble.R")

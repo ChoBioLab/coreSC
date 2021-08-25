@@ -6,4 +6,5 @@ min.features,200
 max.features,2000
 percent.mt,30
 dims,20
+res,0.6
 
