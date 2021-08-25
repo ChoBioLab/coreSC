@@ -40,7 +40,7 @@ then
     else
         OUT_DIR="output/${check_input}"
         check_begin=$((check_begin - 1))
-        Rscript ./scripts/preamble.R $OUT_DIR |& tee -a $OUT_DIR/log.txt
+        Rscript ./scripts/preamble.R $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
     fi
 else
     OUT_DIR="output/output_$TIMESTAMP"
@@ -67,7 +67,7 @@ fi
 # execute pipeline scripts
 for i in $(eval echo "{$check_begin..$check_end}")
 do
-    Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR |& tee -a $OUT_DIR/log.txt
+    Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
 done
 
 cp ./config/params.csv ./config/samples.csv $OUT_DIR
