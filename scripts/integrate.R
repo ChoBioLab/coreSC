@@ -4,7 +4,7 @@ library(Seurat)
 library(dplyr)
 
 load("./tmp/base_image.RData")
-objects <- readRDS("./tmp/individual_objects")
+objects <- readRDS(paste0(out_path, "individual_objects"))
 
 d <- params["dims", ]
 x <- FindIntegrationAnchors(
