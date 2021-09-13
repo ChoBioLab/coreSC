@@ -58,6 +58,6 @@ for (i in samples$name) {
   )
 }
 
-saveRDS(objects, file = "./tmp/individual_objects")
+saveRDS(objects, file = paste0(out_path, "individual_objects"))
 
 print("End of create_object.R")
