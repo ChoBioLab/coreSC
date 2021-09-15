@@ -11,7 +11,6 @@ clustered <- read_object("clustered")
 
 # individual sample qc
 for (i in 1:nrow(samples)) {
-
   plot <- VlnPlot(
     objects[[i]],
     features = c(
