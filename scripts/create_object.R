@@ -49,15 +49,40 @@ for (i in 1:nrow(samples)) {
   str_section_head("Scaled") # logging
 }
 
-# create and save list of seurat objects
-objects <- list()
-for (i in samples$name) {
-  objects <- c(
-    objects,
-    get(i) # need get() to call object instead of string
-  )
-}
+  objects <- list()
+  for (i in samples$name) {
+    objects <- c(
+      objects,
+      get(i) # need get() to call object instead of string
+    )
+  }
 
-saveRDS(objects, file = paste0(out_path, "individual_objects"))
+# run check for single sample
+if (length(samples$name) == 1) {
+
+  message("Single sample detected - skipping integration")
+  saveRDS(x, file = "./tmp/tmp_object.RDS")
+  saveRDS(objects, file = paste0(out_path, "individual.RDS"))
+
+} else {
+
+  d <- params["dims", ]
+  saveRDS(objects, file = paste0(out_path, "individual.RDS"))
+
+  x <- FindIntegrationAnchors(
+    object.list = objects,
+    dims = 1:d
+  )
+
+  x <- IntegrateData(
+    anchorset = x,
+    dims = 1:d
+  )
+
+  DefaultAssay(x) <- "integrated"
+  saveRDS(x, file = "./tmp/tmp_object.RDS")
+
+  str_section_noloop("Integrated") # logging
+}
 
 print("End of create_object.R")

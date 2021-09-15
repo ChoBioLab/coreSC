@@ -4,22 +4,8 @@ library(Seurat)
 library(dplyr)
 
 load("./tmp/base_image.RData")
-objects <- readRDS(paste0(out_path, "individual_objects"))
-
+x <- readRDS("./tmp/tmp_object.RDS")
 d <- params["dims", ]
-x <- FindIntegrationAnchors(
-  object.list = objects,
-  dims = 1:d
-)
-
-x <- IntegrateData(
-  anchorset = x,
-  dims = 1:d
-)
-
-DefaultAssay(x) <- "integrated"
-
-str_section_noloop("Integrated") # logging
 
 all.genes <- rownames(x)
 
@@ -77,5 +63,5 @@ x <- FindClusters(
 
 str_section_noloop("Clustered") # logging
 
-save_object(x, "combined_integrated")
-print("End of integrate.R")
+save_object(x, "clustered")
+print("End of cluster.R")

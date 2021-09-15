@@ -6,8 +6,8 @@ library(cowplot)
 library(patchwork)
 
 load("./tmp/base_image.RData")
-objects <- readRDS(paste0(out_path, "individual_objects"))
-combined <- read_object("combined_integrated")
+objects <- readRDS(paste0(out_path, "individual.RDS"))
+clustered <- read_object("clustered")
 
 # individual sample qc
 for (i in 1:nrow(samples)) {
@@ -72,13 +72,13 @@ for (i in 1:nrow(samples)) {
 #            )
 
 plot1 <- DimPlot(
-  combined,
+  clustered,
   reduction = "umap",
   group.by = "group"
 )
 
 plot2 <- DimPlot(
-  combined,
+  clustered,
   reduction = "umap",
   label = T
 )
