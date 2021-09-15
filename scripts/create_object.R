@@ -50,23 +50,20 @@ for (i in 1:nrow(samples)) {
 }
 
 # create and save list of seurat objects
-  objects <- list()
-  for (i in samples$name) {
-    objects <- c(
-      objects,
-      get(i) # need get() to call object instead of string
-    )
-  }
+objects <- list()
+for (i in samples$name) {
+  objects <- c(
+    objects,
+    get(i) # need get() to call object instead of string
+  )
+}
 
 # run check for single sample
 if (length(samples$name) == 1) {
-
   message("Single sample detected - skipping integration")
   saveRDS(x, file = "./tmp/tmp_object.RDS")
   saveRDS(objects, file = paste0(out_path, "individual.RDS"))
-
 } else {
-
   d <- params["dims", ]
   saveRDS(objects, file = paste0(out_path, "individual.RDS"))
 
