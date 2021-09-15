@@ -12,7 +12,7 @@ clustered <- read_object("clustered")
 # individual sample qc
 for (i in 1:nrow(samples)) {
   plot <- VlnPlot(
-    objects[[i]],
+    objects[i],
     features = c(
       "nFeature_RNA",
       "nCount_RNA",
@@ -21,12 +21,12 @@ for (i in 1:nrow(samples)) {
     ncol = 3
   )
   plot1 <- FeatureScatter(
-    objects[[i]],
+    objects[i],
     feature1 = "nCount_RNA",
     feature2 = "percent.mt"
   )
   plot2 <- FeatureScatter(
-    objects[[i]],
+    objects[i],
     feature1 = "nCount_RNA",
     feature2 = "nFeature_RNA"
   )
