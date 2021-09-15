@@ -49,13 +49,7 @@ for (i in 1:nrow(samples)) {
   str_section_head("Scaled") # logging
 }
 
-# run check for single sample
-if (length(samples$name == 1)) {
-  message("Single sample detected - skipping integration")
-  saveRDS(x, file = paste0(out_path, "individual_objects.rds"))
-} else {
-
-  # create and save list of seurat objects
+# create and save list of seurat objects
   objects <- list()
   for (i in samples$name) {
     objects <- c(
