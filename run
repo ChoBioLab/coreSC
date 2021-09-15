@@ -15,7 +15,7 @@ check_end=3
 SCRIPTS=(
     "preamble.R"
     "create_object.R"
-    "integrate.R"
+    "cluster.R"
     "visualize.R"
 )
 
