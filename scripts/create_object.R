@@ -2,6 +2,9 @@
 
 library(Seurat)
 library(dplyr)
+library(future)
+
+plan(multicore)
 
 load("./tmp/base_image.RData")
 

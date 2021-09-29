@@ -12,7 +12,8 @@ packages <- c(
   "Seurat",
   "tidyverse",
   "cowplot",
-  "patchwork"
+  "patchwork",
+  "future"
 )
 
 package_check <- lapply(
