@@ -5,6 +5,7 @@ library(dplyr)
 library(future)
 
 plan(multicore)
+options(future.globals.maxSize = 2000 * 1024^2)
 
 load("./tmp/base_image.RData")
 
