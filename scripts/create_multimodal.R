@@ -14,13 +14,21 @@ for (i in 1:nrow(samples)) {
     data.dir = samples$dir[i]
   )
 
+  raw <- x
+  rna <- raw[[1]]
+  adt <- raw[[2]]
+
   str_section_head("Raw Object") # logging
 
   x <- CreateSeuratObject( # certain data will gen null matrix sans filters
-    counts = x,
-    project = samples$project[i],
-    min.cells = params["min.cells", ],
-    min.features = params["min.features", ]
+    counts = rna,
+    project = samples$project[i]
+    # min.cells = params["min.cells", ],
+    # min.features = params["min.features", ]
+  )
+
+  x[["ADT"]] <- CreateAssayObject(
+    counts = adt
   )
 
   x[["percent.mt"]] <- PercentageFeatureSet(
@@ -38,6 +46,11 @@ for (i in 1:nrow(samples)) {
   )
 
   x <- NormalizeData(x)
+  x <- NormalizeData( # TODO determine validity of margin param
+    x,
+    normalization.method = "CLR",
+    assay = "ADT"
+  )
 
   str_section_head("Subset, Normalized") # logging
 
@@ -47,6 +60,11 @@ for (i in 1:nrow(samples)) {
     x,
     verbose = F,
     features = genes
+  )
+
+  x <- ScaleData(
+    x,
+    assay = "ADT"
   )
 
   x <- FindVariableFeatures(

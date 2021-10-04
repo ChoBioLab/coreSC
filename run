@@ -20,7 +20,7 @@ SCRIPTS=(
 )
 
 # pass arguments from cli
-while getopts b:e:i:m: option
+while getopts b:e:i:m:M: option
 do
     case "${option}"
         in
@@ -28,6 +28,7 @@ do
         e) check_end=${OPTARG};;
         i) check_input=${OPTARG};;
         m) merge_combine=${OPTARG};;
+        M) multimodal=${OPTARG};;
     esac
 done
 
@@ -55,6 +56,16 @@ then
     echo "${SCRIPTS[@]}"
 else
     echo "Combining samples using integration"
+fi
+
+# do check for sample combine preference
+if [[ "${multimodal}" == "TRUE" ]]
+then
+    echo "Creating multimodal object"
+    SCRIPTS=("${SCRIPTS[@]/object/multimodal}")
+    echo "${SCRIPTS[@]}"
+else
+    echo "Creating traditional Seurat object"
 fi
 
 # adjust index from human to bash
