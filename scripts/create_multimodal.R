@@ -14,11 +14,11 @@ for (i in 1:nrow(samples)) {
     data.dir = samples$dir[i]
   )
 
+  str_section_head("Raw Object") # logging
+
   raw <- x
   rna <- raw[[1]]
   adt <- raw[[2]]
-
-  str_section_head("Raw Object") # logging
 
   x <- CreateSeuratObject( # certain data will gen null matrix sans filters
     counts = rna,
