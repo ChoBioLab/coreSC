@@ -59,7 +59,7 @@ else
 fi
 
 # do check for sample combine preference
-if [[ "${multimodal}" == "TRUE" ]]
+if [[ "${multimodal:-}" == "TRUE" ]]
 then
     echo "Creating multimodal object"
     SCRIPTS=("${SCRIPTS[@]/object/multimodal}")
