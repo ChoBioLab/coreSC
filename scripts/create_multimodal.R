@@ -13,18 +13,31 @@ for (i in 1:nrow(samples)) {
   x <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
   )
+
   str_section_head("Raw Object") # logging
+
+  raw <- x
+  rna <- raw[[1]]
+  adt <- raw[[2]]
+
   x <- CreateSeuratObject( # certain data will gen null matrix sans filters
-    counts = x,
-    project = samples$project[i],
-    min.cells = params["min.cells", ],
-    min.features = params["min.features", ]
+    counts = rna,
+    project = samples$project[i]
+    # min.cells = params["min.cells", ],
+    # min.features = params["min.features", ]
   )
+
+  x[["ADT"]] <- CreateAssayObject(
+    counts = adt
+  )
+
   x[["percent.mt"]] <- PercentageFeatureSet(
     x,
     pattern = "(?i)^MT-"
   )
+
   str_section_head("Base Seurat Object") # logging
+
   x <- subset(
     x,
     nCount_RNA > params["min.count", ] &
@@ -32,21 +45,38 @@ for (i in 1:nrow(samples)) {
       percent.mt < params["max.percent.mt", ] &
       percent.mt > params["min.percent.mt", ]
   )
+
   x <- NormalizeData(x)
+  x <- NormalizeData( # TODO determine validity of margin param
+    x,
+    normalization.method = "CLR",
+    assay = "ADT"
+  )
+
   str_section_head("Subset, Normalized") # logging
+
   genes <- rownames(x)
+
   x <- ScaleData(
     x,
     verbose = F,
     features = genes
   )
+
+  x <- ScaleData(
+    x,
+    assay = "ADT"
+  )
+
   x <- FindVariableFeatures(
     x,
     selection.method = "vst",
     nfeatures = params["max.features", ]
   )
+
   x@meta.data$object <- samples$name[i]
   x@meta.data$group <- samples$group[i]
+
   assign( # giving names to objects
     samples$name[i],
     x

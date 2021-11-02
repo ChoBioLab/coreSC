@@ -4,7 +4,8 @@ min.count,500
 max.count,60000
 min.features,200
 max.features,2000
-percent.mt,30
+max.percent.mt,30
+min.percent.mt,0
 dims,20
 res,0.6
 
