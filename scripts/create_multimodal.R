@@ -42,7 +42,8 @@ for (i in 1:nrow(samples)) {
     x,
     nCount_RNA > params["min.count", ] &
       nCount_RNA < params["max.count", ] &
-      percent.mt < params["percent.mt", ]
+      percent.mt < params["max.percent.mt", ] &
+      percent.mt > params["min.percent.mt", ]
   )
 
   x <- NormalizeData(x)
