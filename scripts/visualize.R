@@ -5,8 +5,9 @@ library(dplyr)
 library(cowplot)
 library(patchwork)
 
-load("./tmp/base_image.RData")
-objects <- readRDS(paste0(out_path, "individual.RDS"))
+load("./tmp/preamble_image.RData")
+objects <- read_object("individual")
+xPCA <- readRDS(".tmp/xPCA.RDS")
 clustered <- read_object("clustered")
 
 # individual sample qc
@@ -48,47 +49,40 @@ for (i in 1:nrow(samples)) {
   )
 }
 
-## visualzing linear dim reduction
-# for (i in objects) {
-# VizDimLoadings(i, dims = 1:2, reduction = "pca")
-# DimPlot(i, reduction = "pca")
-# DimHeatmap(i, dims = 1:15, cells = 500, balanced = TRUE)
-# JackStrawPlot(i, dims = 1:15)
-# ElbowPlot(i)
-# }
-#
-#
-## visualzing non-linear dim reduction
-# dimheat <- DimHeatmap(
-#  integrated,
-#  dims = 1:params["dims", ],
-#  cells = 500,
-#  balanced = TRUE
-# )
-# JackStrawPlot(integrated, dims = 1:15)
-# ElbowPlot(integrated)
-#
-# save_figure(
-#            dimheat,
-#            "integrated_dimheat_red",
-#            width = 12,
-#            height = 6
-#            )
+xPCA <- JackStraw(xPCA)
+xPCA <- ScoreJackStraw(
+  xPCA,
+  dims = 1:d
+)
 
-plot1 <- DimPlot(
+jack <- JackStrawPlot(
+  xPCA,
+  dims = 1:d
+)
+
+elbow <- ElbowPlot(xPCA)
+
+save_figure(
+  (jack + elbow),
+  "dimensionality",
+  width = 12,
+  height = 6
+)
+
+dim1 <- DimPlot(
   clustered,
   reduction = "umap",
   group.by = "group"
 )
 
-plot2 <- DimPlot(
+dim2 <- DimPlot(
   clustered,
   reduction = "umap",
   label = T
 )
 
 save_figure(
-  (plot1 + plot2),
+  (dim1 + dim2),
   "combined_dimplot_red",
   width = 12,
   height = 6

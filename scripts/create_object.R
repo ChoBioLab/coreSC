@@ -2,18 +2,17 @@
 
 library(Seurat)
 library(dplyr)
-library(future)
+library(future) # parallelization
 
-plan(multicore)
+plan(multicore) # parallelization
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/base_image.RData")
+load("./tmp/preamble_image.RData")
 
 for (i in 1:nrow(samples)) {
   x <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
   )
-
   str_section_head("Raw Object") # logging
 
   x <- CreateSeuratObject( # certain data will gen null matrix sans filters
@@ -27,7 +26,6 @@ for (i in 1:nrow(samples)) {
     x,
     pattern = "(?i)^MT-"
   )
-
   str_section_head("Base Seurat Object") # logging
 
   x <- subset(
@@ -39,7 +37,6 @@ for (i in 1:nrow(samples)) {
   )
 
   x <- NormalizeData(x)
-
   str_section_head("Subset, Normalized") # logging
 
   genes <- rownames(x)
@@ -75,29 +72,5 @@ for (i in samples$name) {
   )
 }
 
-# run check for single sample
-if (length(samples$name) == 1) {
-  message("Single sample detected - skipping integration")
-  saveRDS(x, file = "./tmp/tmp_object.RDS")
-  saveRDS(objects, file = paste0(out_path, "individual.RDS"))
-} else {
-  d <- params["dims", ]
-  saveRDS(objects, file = paste0(out_path, "individual.RDS"))
-
-  x <- FindIntegrationAnchors(
-    object.list = objects,
-    dims = 1:d
-  )
-
-  x <- IntegrateData(
-    anchorset = x,
-    dims = 1:d
-  )
-
-  DefaultAssay(x) <- "integrated"
-  saveRDS(x, file = "./tmp/tmp_object.RDS")
-
-  str_section_noloop("Integrated") # logging
-}
-
+save_object(objects, "individual")
 print("End of create_object.R")

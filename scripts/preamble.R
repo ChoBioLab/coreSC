@@ -74,6 +74,6 @@ str_section_noloop <- function(title) {
   str(x)
 }
 
-save.image("./tmp/base_image.RData")
+save.image("./tmp/preamble_image.RData")
 
 print("End of preamble.R")

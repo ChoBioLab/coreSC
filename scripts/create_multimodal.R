@@ -7,7 +7,7 @@ library(future)
 plan(multicore)
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/base_image.RData")
+load("./tmp/preamble_image.RData")
 
 for (i in 1:nrow(samples)) {
   x <- Read10X( # pulling data with no filter

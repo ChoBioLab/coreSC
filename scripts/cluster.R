@@ -2,14 +2,32 @@
 
 library(Seurat)
 library(dplyr)
-library(future)
+library(future) # parallelization
 
-plan(multicore)
+plan(multicore) # parallelization
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/base_image.RData")
-x <- readRDS("./tmp/tmp_object.RDS")
+load("./tmp/preamble_image.RData")
+x <- read_object("individual")
 d <- params["dims", ]
+
+# run check for single sample
+if (length(samples$name) == 1) {
+  message("Single sample detected - skipping integration")
+} else { # integrate
+  x <- FindIntegrationAnchors(
+    object.list = objects,
+    dims = 1:d
+  )
+
+  x <- IntegrateData(
+    anchorset = x,
+    dims = 1:d
+  )
+
+  DefaultAssay(x) <- "integrated"
+  str_section_noloop("Integrated") # logging
+}
 
 all.genes <- rownames(x)
 
@@ -19,39 +37,19 @@ x <- ScaleData(
   features = all.genes
 )
 
-x <- RunPCA(
+xPCA <- RunPCA(
   x,
   npcs = d,
   verbose = FALSE
 )
 
-x <- JackStraw(x)
-
-x <- ScoreJackStraw(
-  x,
-  dims = 1:d
-)
-
-plot1 <- JackStrawPlot(
-  x,
-  dims = 1:d
-)
-
-plot2 <- ElbowPlot(x)
-
-save_figure(
-  (plot1 + plot2),
-  "dimensionality",
-  width = 12,
-  height = 6
-)
+saveRDS(xPCA, file = "./tmp/xPCA.RDS") # saving for dimensionality
 
 x <- RunUMAP(
-  x,
+  xPCA,
   reduction = "pca",
   dims = 1:d
 )
-
 str_section_noloop("Reduced") # logging
 
 x <- FindNeighbors(
@@ -64,7 +62,6 @@ x <- FindClusters(
   x,
   resolution = params["res", ]
 )
-
 str_section_noloop("Clustered") # logging
 
 save_object(x, "clustered")
