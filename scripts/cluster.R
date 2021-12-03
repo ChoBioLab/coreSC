@@ -9,8 +9,9 @@ options(future.globals.maxSize = 2000 * 1024^2)
 
 load("./tmp/preamble_image.RData")
 x <- read_object("individual")
-d <- params["dims", ]
 
+message("object check")
+str(x)
 # run check for single sample
 if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
@@ -32,15 +33,14 @@ if (length(samples$name) == 1) {
 
   DefaultAssay(x) <- "integrated"
   str_section_noloop("Integrated") # logging
+
+  genes <- rownames(x)
+  x <- ScaleData(
+    x,
+    verbose = FALSE,
+    features = genes
+  )
 }
-
-all.genes <- rownames(x)
-
-x <- ScaleData(
-  x,
-  verbose = FALSE,
-  features = all.genes
-)
 
 xPCA <- RunPCA(
   x,

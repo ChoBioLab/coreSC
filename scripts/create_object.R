@@ -43,7 +43,7 @@ for (i in 1:nrow(samples)) {
 
   x <- ScaleData(
     x,
-    verbose = F,
+    verbose = FALSE,
     features = genes
   )
 
@@ -63,14 +63,19 @@ for (i in 1:nrow(samples)) {
   str_section_head("Scaled") # logging
 }
 
-# create and save list of seurat objects
-objects <- list()
-for (i in samples$name) {
-  objects <- c(
-    objects,
-    get(i) # need get() to call object instead of string
-  )
+if (length(samples$name) == 1) {
+  save_object(x, "individual")
+} else { # integrate
+  # create and save list of seurat objects
+  objects <- list()
+  for (i in samples$name) {
+    objects <- c(
+      objects,
+      get(i) # need get() to call object instead of string
+    )
+  }
+
+  save_object(objects, "individual")
 }
 
-save_object(objects, "individual")
 print("End of create_object.R")
