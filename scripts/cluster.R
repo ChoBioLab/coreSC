@@ -15,9 +15,14 @@ d <- params["dims", ]
 if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
 } else { # integrate
+  features <- SelectIntegrationFeatures(
+    object.list = objects
+  )
+
   x <- FindIntegrationAnchors(
     object.list = objects,
-    dims = 1:d
+    dims = 1:d,
+    anchor.features = features
   )
 
   x <- IntegrateData(
