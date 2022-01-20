@@ -20,7 +20,7 @@ SCRIPTS=(
 )
 
 # pass arguments from cli
-while getopts b:e:i:m:M: option
+while getopts b:e:i:m:M:a: option
 do
     case "${option}"
         in
@@ -29,6 +29,7 @@ do
         i) check_input=${OPTARG};;
         m) merge_combine=${OPTARG};;
         M) multimodal=${OPTARG};;
+        a) atac=${OPTARG};;
     esac
 done
 
@@ -64,6 +65,10 @@ then
     echo "Creating multimodal object"
     SCRIPTS=("${SCRIPTS[@]/object/multimodal}")
     echo "${SCRIPTS[@]}"
+elif [[ "${atac:-}" == "TRUE" ]]
+then
+    echo "Creating ATAC object"
+    SCRIPTS=("preamble.R" "atac_multi_wnn_mapping.R")
 else
     echo "Creating traditional Seurat object"
 fi
