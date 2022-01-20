@@ -12,11 +12,11 @@ TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
 check_begin=0 # process number iterates from 1 for user
 check_end=3
 
-SCRIPTS=(
-    "preamble.R"
-    "create_object.R"
-    "cluster.R"
-    "visualize.R"
+declare -a SCRIPTS=(
+"preamble.R"
+"create_object.R"
+"cluster.R"
+"visualize.R"
 )
 
 # pass arguments from cli
@@ -69,6 +69,8 @@ elif [[ "${atac:-}" == "TRUE" ]]
 then
     echo "Creating ATAC object"
     SCRIPTS=("preamble.R" "atac_multi_wnn_mapping.R")
+    echo "${SCRIPTS[@]}"
+    check_end=2
 else
     echo "Creating traditional Seurat object"
 fi
@@ -77,7 +79,6 @@ fi
 if [[ $check_end -ne 3 ]]
 then
     check_end=$((check_end - 1))
-    echo "$check_end"
 fi
 
 # execute pipeline scripts
