@@ -78,7 +78,7 @@ for (i in 1:nrow(samples)) {
   x[["ATAC"]] <- chrom_assay
   DefaultAssay(x) <- "ATAC"
 
-  VlnPlot(x,
+  p1 <- VlnPlot(x,
     features = c(
       "nCount_ATAC",
       "nCount_RNA",
@@ -88,6 +88,13 @@ for (i in 1:nrow(samples)) {
     log = TRUE,
     pt.size = 0
   ) + NoLegend()
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_counts_vln"),
+    width = 12,
+    height = 6
+  )
 
   # compute nucleosome signal score per cell
   x <- NucleosomeSignal(object = x)
@@ -107,10 +114,17 @@ for (i in 1:nrow(samples)) {
     "Low"
   )
 
-  TSSPlot(
+  p1 <- TSSPlot(
     x,
     group.by = "high.tss"
   ) + NoLegend()
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_tss"),
+    width = 12,
+    height = 6
+  )
 
   x$nucleosome_group <- ifelse(
     x$nucleosome_signal > 4,
@@ -123,7 +137,7 @@ for (i in 1:nrow(samples)) {
     group.by = "nucleosome_group"
   )
 
-  VlnPlot(
+  p1 <- VlnPlot(
     object = x,
     features = c(
       "pct_reads_in_peaks",
@@ -133,6 +147,13 @@ for (i in 1:nrow(samples)) {
     ),
     pt.size = 0.1,
     ncol = 5
+  )
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_atac_vln"),
+    width = 12,
+    height = 6
   )
 
   x <- subset(
@@ -201,10 +222,17 @@ for (i in 1:nrow(samples)) {
     dims = 1:50
   )
 
-  DimPlot(
+  p1 <- DimPlot(
     refquery,
     group.by = "id",
     shuffle = TRUE
+  )
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_mapping_dim"),
+    width = 12,
+    height = 6
   )
 
   # ATAC analysis
@@ -218,6 +246,13 @@ for (i in 1:nrow(samples)) {
 
   x <- RunSVD(x)
   DepthCor(x)
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_depth"),
+    width = 12,
+    height = 6
+  )
 
   x <- RunUMAP(
     x,
@@ -274,7 +309,12 @@ for (i in 1:nrow(samples)) {
     repel = TRUE
   ) + ggtitle("WNN")
 
-  p1 + p2 + p3 & NoLegend() & theme(plot.title = element_text(hjust = 0.5))
+  save_figure(
+    p1 + p2 + p3,
+    paste0(samples$name[i], "_clustered"),
+    width = 12,
+    height = 6
+  )
 
   ## to make the visualization easier, subset T cell clusters
   celltype.names <- levels(x)
@@ -289,13 +329,20 @@ for (i in 1:nrow(samples)) {
     idents = tcell.names
   )
 
-  CoveragePlot(
+  p1 <- CoveragePlot(
     tcells,
     region = "CD8A",
     features = "CD8A",
     assay = "ATAC",
     expression.assay = "SCT",
     peaks = FALSE
+  )
+
+  save_figure(
+    p1 + p2 + p3,
+    paste0(samples$name[i], "_coverage"),
+    width = 12,
+    height = 6
   )
 
 
@@ -306,7 +353,7 @@ for (i in 1:nrow(samples)) {
 }
 
 if (length(samples$name) == 1) {
-  saveRDS(x, file = "individual.RDS")
+  save_object(x, file = "individual")
 } else { # integrate
   # create and save list of seurat objects
   objects <- list()
@@ -316,5 +363,5 @@ if (length(samples$name) == 1) {
       get(i) # need get() to call object instead of string
     )
   }
-  saveRDS(objects, "individual.RDS")
+  save_object(objects, "individual")
 }
