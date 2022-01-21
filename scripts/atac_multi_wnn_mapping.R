@@ -8,7 +8,7 @@ library(ggplot2)
 library(future)
 
 plan(multicore) # parallelization
-options(future.globals.maxSize = 2000 * 1024^2)
+options(future.globals.maxSize = 3000 * 1024^2)
 
 load("./tmp/preamble_image.RData")
 
@@ -20,7 +20,6 @@ download.file(
 )
 
 reference <- LoadH5Seurat("./tmp/pbmc_multimodal.h5seurat")
-
 
 for (i in 1:nrow(samples)) {
   print(paste0(samples$dir[i], "/filtered_feature_bc_matrix.h5"))
@@ -132,9 +131,16 @@ for (i in 1:nrow(samples)) {
     "NS < 4"
   )
 
-  FragmentHistogram(
+  p1 <- FragmentHistogram(
     object = x,
     group.by = "nucleosome_group"
+  )
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_frag_histogram"),
+    width = 12,
+    height = 6
   )
 
   p1 <- VlnPlot(
@@ -245,7 +251,7 @@ for (i in 1:nrow(samples)) {
   )
 
   x <- RunSVD(x)
-  DepthCor(x)
+  p1 <- DepthCor(x)
 
   save_figure(
     p1,
@@ -339,7 +345,7 @@ for (i in 1:nrow(samples)) {
   )
 
   save_figure(
-    p1 + p2 + p3,
+    p1,
     paste0(samples$name[i], "_coverage"),
     width = 12,
     height = 6
