@@ -6,6 +6,11 @@ library(EnsDb.Hsapiens.v86)
 library(dplyr)
 library(ggplot2)
 library(future)
+library(chromVAR)
+library(JASPAR2020)
+library(TFBSTools)
+library(motifmatchr)
+library(BSgenome.Hsapiens.UCSC.hg38)
 
 plan(multicore) # parallelization
 options(future.globals.maxSize = 3000 * 1024^2)
@@ -351,6 +356,39 @@ for (i in 1:nrow(samples)) {
     height = 6
   )
 
+  # Get a list of motif position frequency matrices from the JASPAR database
+  pwm_set <- getMatrixSet(
+    x = JASPAR2020,
+    opts = list(
+      species = 9606,
+      all_versions = FALSE
+    )
+  )
+
+  motif.matrix <- CreateMotifMatrix(
+    features = granges(x),
+    pwm = pwm_set,
+    genome = "hg38",
+    use.counts = FALSE
+  )
+
+  motif.object <- CreateMotifObject(
+    data = motif.matrix,
+    pwm = pwm_set
+  )
+
+  x <- SetAssayData(
+    x,
+    assay = "ATAC",
+    slot = "motifs",
+    new.data = motif.object
+  )
+
+  # Note that this step can take 30-60 minutes
+  x <- RunChromVAR(
+    object = x,
+    genome = BSgenome.Hsapiens.UCSC.hg38
+  )
 
   assign( # giving names to objects
     samples$name[i],

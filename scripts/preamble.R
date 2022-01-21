@@ -16,15 +16,6 @@ packages <- c(
   "future"
 )
 
-package_check <- lapply(
-  packages,
-  function(x) {
-    if (!require(x, character.only = T)) {
-      install.packages(x, dependencies = T)
-    }
-  }
-)
-
 # convenience functions
 save_figure <- function(plots, name, type = "png", width, height, res) {
   if (type == "png") {
