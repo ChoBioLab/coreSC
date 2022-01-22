@@ -24,7 +24,8 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 download.file(
   url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
   destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
-  method = "wget"
+  method = "wget",
+  quiet = TRUE
 )
 
 reference <- LoadH5Seurat(paste0(out_path, "tmp/pbmc_multimodal.h5seurat"))
