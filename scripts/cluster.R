@@ -113,5 +113,9 @@ save_figure(
   height = 6
 )
 
+y <- FindAllMarkers(x)
+
 save_object(x, "clustered")
+save_object(y, "markers")
+
 print("End of cluster.R")
