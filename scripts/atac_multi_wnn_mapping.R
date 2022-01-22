@@ -393,6 +393,8 @@ for (i in 1:nrow(samples)) {
     genome = BSgenome.Hsapiens.UCSC.hg38
   )
 
+  warnings()
+
   assign( # giving names to objects
     samples$name[i],
     x
@@ -400,7 +402,7 @@ for (i in 1:nrow(samples)) {
 }
 
 if (length(samples$name) == 1) {
-  save_object(x, file = "individual")
+  save_object(x, "individual")
 } else { # integrate
   # create and save list of seurat objects
   objects <- list()
