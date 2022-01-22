@@ -7,7 +7,10 @@ library(future) # parallelization
 plan(multicore) # parallelization
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/preamble_image.RData")
+args <- commandArgs(trailingOnly = T)
+out_path <- paste0(args[1], "/")
+
+load(paste0(out_path, "tmp/preamble_image.RData"))
 x <- read_object("individual")
 
 message("object check")
@@ -48,7 +51,7 @@ xPCA <- RunPCA(
   verbose = FALSE
 )
 
-saveRDS(xPCA, file = "./tmp/xPCA.RDS") # saving for dimensionality
+saveRDS(xPCA, file = paste0(out_path, "tmp/xPCA.RDS")) # saving for dimensionality
 
 x <- RunUMAP(
   xPCA,

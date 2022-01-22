@@ -46,7 +46,7 @@ then
     fi
 else
     OUT_DIR="output/output_$TIMESTAMP"
-    mkdir -p $OUT_DIR tmp
+    mkdir -p $OUT_DIR $OUT_DIR/tmp
 fi
 
 # do check for sample combine preference
@@ -88,4 +88,4 @@ do
 done
 
 cp ./config/params.csv ./config/samples.csv $OUT_DIR
-rm ./tmp/*
+rm -rf $OUT_DIR/tmp

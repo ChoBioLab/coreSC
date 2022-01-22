@@ -5,9 +5,12 @@ library(dplyr)
 library(cowplot)
 library(patchwork)
 
-load("./tmp/preamble_image.RData")
+args <- commandArgs(trailingOnly = T)
+out_path <- paste0(args[1], "/")
+
+load(paste0(out_path, "tmp/preamble_image.RData"))
 objects <- read_object("individual")
-xPCA <- readRDS("./tmp/xPCA.RDS")
+xPCA <- readRDS(paste0(out_path, "tmp/xPCA.RDS"))
 clustered <- read_object("clustered")
 
 message("object check 2")

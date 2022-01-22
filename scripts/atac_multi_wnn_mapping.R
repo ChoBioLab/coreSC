@@ -15,16 +15,19 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 plan(multicore) # parallelization
 options(future.globals.maxSize = 3000 * 1024^2)
 
-load("./tmp/preamble_image.RData")
+args <- commandArgs(trailingOnly = T)
+out_path <- paste0(args[1], "/")
+
+load(paste0(out_path, "tmp/preamble_image.RData"))
 
 # load H5 reference for cluster mapping
 download.file(
   url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
-  destfile = "./tmp/pbmc_multimodal.h5seurat",
+  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
   method = "wget"
 )
 
-reference <- LoadH5Seurat("./tmp/pbmc_multimodal.h5seurat")
+reference <- LoadH5Seurat(paste0(out_path, "tmp/pbmc_multimodal.h5seurat"))
 
 for (i in 1:nrow(samples)) {
   print(paste0(samples$dir[i], "/filtered_feature_bc_matrix.h5"))

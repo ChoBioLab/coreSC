@@ -7,7 +7,10 @@ library(future) # parallelization
 plan(multicore) # parallelization
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/preamble_image.RData")
+args <- commandArgs(trailingOnly = T)
+out_path <- paste0(args[1], "/")
+
+load(paste0(out_path, "tmp/preamble_image.RData"))
 
 for (i in 1:nrow(samples)) {
   x <- Read10X( # pulling data with no filter

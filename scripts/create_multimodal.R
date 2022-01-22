@@ -7,7 +7,10 @@ library(future)
 plan(multicore)
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/preamble_image.RData")
+args <- commandArgs(trailingOnly = T)
+out_path <- paste0(args[1], "/")
+
+load(paste0(out_path, "tmp/preamble_image.RData"))
 
 for (i in 1:nrow(samples)) {
   x <- Read10X( # pulling data with no filter
@@ -96,7 +99,7 @@ for (i in samples$name) {
 # run check for single sample
 if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
-  saveRDS(x, file = "./tmp/tmp_object.RDS")
+  saveRDS(x, file = paste0(out_path, "tmp/tmp_object.RDS"))
   saveRDS(objects, file = paste0(out_path, "individual.RDS"))
 } else {
   d <- params["dims", ]
@@ -113,7 +116,7 @@ if (length(samples$name) == 1) {
   )
 
   DefaultAssay(x) <- "integrated"
-  saveRDS(x, file = "./tmp/tmp_object.RDS")
+  saveRDS(x, file = paste(out_path, "tmp/tmp_object.RDS"))
 
   str_section_noloop("Integrated") # logging
 }

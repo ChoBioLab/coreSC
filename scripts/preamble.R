@@ -67,6 +67,6 @@ str_section_noloop <- function(title) {
 
 d <- params["dims", ]
 
-save.image("./tmp/preamble_image.RData")
+save.image(paste0(out_path, "tmp/preamble_image.RData"))
 
 print("End of preamble.R")
