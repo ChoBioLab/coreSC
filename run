@@ -10,13 +10,12 @@ trap on_failure ERR
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
 check_begin=0 # process number iterates from 1 for user
-check_end=3
+check_end=2
 
 declare -a SCRIPTS=(
 "preamble.R"
 "create_object.R"
 "cluster.R"
-"visualize.R"
 )
 
 # pass arguments from cli
@@ -76,7 +75,7 @@ else
 fi
 
 # adjust index from human to bash
-if [[ $check_end -ne 3 ]]
+if [[ $check_end -ne 2 ]]
 then
     check_end=$((check_end - 1))
 fi

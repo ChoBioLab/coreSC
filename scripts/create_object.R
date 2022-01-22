@@ -29,10 +29,49 @@ for (i in 1:nrow(samples)) {
     x,
     pattern = "(?i)^MT-"
   )
+
+  p1 <- VlnPlot(
+    x,
+    features = c(
+      "nFeature_RNA",
+      "nCount_RNA",
+      "percent.mt"
+    ),
+    ncol = 3
+  )
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_unfilt_vln"),
+    width = 12,
+    height = 6
+  )
+
+  p1 <- FeatureScatter(
+    x,
+    feature1 = "nCount_RNA",
+    feature2 = "percent.mt"
+  )
+
+  p2 <- FeatureScatter(
+    x,
+    feature1 = "nCount_RNA",
+    feature2 = "nFeature_RNA"
+  )
+
+  save_figure(
+    (p1 + p2),
+    paste0(samples$name[i], "_unfilt_scatter"),
+    width = 12,
+    height = 6
+  )
+
   str_section_head("Base Seurat Object") # logging
 
   x <- subset(
     x,
+    nFeature_RNA > params["min.features", ] &
+      nFeature_RNA < params["max.features", ] &
     nCount_RNA > params["min.count", ] &
       nCount_RNA < params["max.count", ] &
       percent.mt < params["max.percent.mt", ] &
@@ -42,18 +81,32 @@ for (i in 1:nrow(samples)) {
   x <- NormalizeData(x)
   str_section_head("Subset, Normalized") # logging
 
-  genes <- rownames(x)
-
-  x <- ScaleData(
-    x,
-    verbose = FALSE,
-    features = genes
-  )
-
   x <- FindVariableFeatures(
     x,
     selection.method = "vst",
     nfeatures = params["max.features", ]
+  )
+
+  top10 <- head(VariableFeatures(x), 10)
+  p1 <- VariableFeaturePlot(x)
+  p2 <- LabelPoints(
+    plot = p1,
+    points = top10,
+    repel = TRUE
+  )
+
+  save_figure(
+    (p1 + p2),
+    paste0(samples$name[i], "_var_features"),
+    width = 12,
+    height = 6
+  )
+
+  genes <- rownames(x)
+  x <- ScaleData(
+    x,
+    verbose = FALSE,
+    features = genes
   )
 
   x@meta.data$object <- samples$name[i]

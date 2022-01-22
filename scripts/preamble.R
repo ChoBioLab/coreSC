@@ -20,11 +20,11 @@ packages <- c(
 save_figure <- function(plots, name, type = "png", width, height, res) {
   if (type == "png") {
     png(paste0(out_path, name, ".", type),
-      width = width, height = height, units = "in", res = 200
+      width = 12, height = 6, units = "in", res = 200
     )
   } else {
     pdf(paste0(out_path, name, ".", type),
-      width = width, height = height
+      width = 12, height = 6
     )
   }
   print(plots)

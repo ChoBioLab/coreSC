@@ -45,16 +45,38 @@ if (length(samples$name) == 1) {
   )
 }
 
-xPCA <- RunPCA(
+x <- RunPCA(
   x,
   npcs = d,
   verbose = FALSE
 )
 
-saveRDS(xPCA, file = paste0(out_path, "tmp/xPCA.RDS")) # saving for dimensionality
+x <- JackStraw(
+  x,
+  num.replicate = 100
+)
+
+x <- ScoreJackStraw(
+  x,
+  dims = 1:d
+)
+
+p1 <- JackStrawPlot(
+  x,
+  dims = 1:d
+)
+
+p2 <- ElbowPlot(x)
+
+save_figure(
+  (p1 + p2),
+  "dimensionality",
+  width = 12,
+  height = 6
+)
 
 x <- RunUMAP(
-  xPCA,
+  x,
   reduction = "pca",
   dims = 1:d
 )
@@ -71,6 +93,25 @@ x <- FindClusters(
   resolution = params["res", ]
 )
 str_section_noloop("Clustered") # logging
+
+p1 <- DimPlot(
+  x,
+  reduction = "umap",
+  group.by = "group"
+)
+
+p2 <- DimPlot(
+  x,
+  reduction = "umap",
+  label = T
+)
+
+save_figure(
+  (p1 + p2),
+  "combined_dimplot_red",
+  width = 12,
+  height = 6
+)
 
 save_object(x, "clustered")
 print("End of cluster.R")
