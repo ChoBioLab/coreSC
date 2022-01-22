@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.1.0",
+    "Version": "4.1.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -765,14 +765,14 @@
       "Package": "SeuratDisk",
       "Version": "0.0.0.9019",
       "Source": "GitHub",
-      "Remotes": "satijalab/seurat-data",
       "RemoteType": "github",
+      "Remotes": "satijalab/seurat-data",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "seurat-disk",
       "RemoteUsername": "mojaveazure",
       "RemoteRef": "HEAD",
       "RemoteSha": "163f1aade5bac38ed1e9e9c912283a7e74781610",
-      "Hash": "85629b6fec50b2632b8b3402ff86cc58",
+      "Hash": "9dc79df5da096e8f73c8f978629118eb",
       "Requirements": [
         "Matrix",
         "R6",
