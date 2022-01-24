@@ -31,7 +31,6 @@ download.file(
 reference <- LoadH5Seurat(paste0(out_path, "tmp/pbmc_multimodal.h5seurat"))
 
 for (i in 1:nrow(samples)) {
-  print(paste0(samples$dir[i], "/filtered_feature_bc_matrix.h5"))
   # the 10x hdf5 file contains both data types.
   inputdata.10x <- Read10X_h5(
     paste0(
@@ -39,6 +38,7 @@ for (i in 1:nrow(samples)) {
       "/filtered_feature_bc_matrix.h5"
     )
   )
+  str_section_head("Raw Object")
 
   # metadata is found in the per_barcode_metrics.csv in cellranger-arc
   metadata <- read.csv(
@@ -59,6 +59,7 @@ for (i in 1:nrow(samples)) {
     counts = rna_counts,
     meta.data = metadata
   )
+  str_section_head("Base Seurat Object")
 
   x[["percent.mt"]] <- PercentageFeatureSet(x, pattern = "^MT-")
 
@@ -85,6 +86,7 @@ for (i in 1:nrow(samples)) {
 
   x[["ATAC"]] <- chrom_assay
   DefaultAssay(x) <- "ATAC"
+  str_section_head("with ATAC")
 
   p1 <- VlnPlot(x,
     features = c(
@@ -121,6 +123,7 @@ for (i in 1:nrow(samples)) {
     "High",
     "Low"
   )
+  str_section_head("Nucleosome and TSS Scores")
 
   p1 <- TSSPlot(
     x,
@@ -182,6 +185,7 @@ for (i in 1:nrow(samples)) {
       TSS.enrichment > 1 &
       percent.mt < 20
   )
+  str_section_head("Filtered")
 
   # RNA analysis
   DefaultAssay(x) <- "RNA"
@@ -217,6 +221,7 @@ for (i in 1:nrow(samples)) {
     reference.reduction = "spca",
     reduction.model = "wnn.umap"
   )
+  str_section_head("WNN Mapped")
 
   # merge reference and query
   reference$id <- "reference"
@@ -330,6 +335,7 @@ for (i in 1:nrow(samples)) {
     width = 12,
     height = 6
   )
+  str_section_head("Clustered")
 
   ## to make the visualization easier, subset T cell clusters
   celltype.names <- levels(x)
@@ -393,6 +399,7 @@ for (i in 1:nrow(samples)) {
     object = x,
     genome = BSgenome.Hsapiens.UCSC.hg38
   )
+  str_section_head("Motif Scored")
 
   warnings()
 
