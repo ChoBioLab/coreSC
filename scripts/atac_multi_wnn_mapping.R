@@ -332,7 +332,7 @@ for (i in 1:nrow(samples)) {
   save_figure(
     p1 + p2 + p3,
     paste0(samples$name[i], "_clustered"),
-    width = 12,
+    width = 18,
     height = 6
   )
   str_section_head("Clustered")

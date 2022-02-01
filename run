@@ -69,7 +69,7 @@ then
     echo "Creating ATAC object"
     SCRIPTS=("preamble.R" "atac_multi_wnn_mapping.R")
     echo "${SCRIPTS[@]}"
-    check_end=2
+    check_end=1
 else
     echo "Creating traditional Seurat object"
 fi
@@ -81,9 +81,10 @@ then
 fi
 
 # execute pipeline scripts
-for i in $(eval echo "{$check_begin..$check_end}")
+# for i in $(eval echo "{$check_begin..$check_end}")
+for i in "${SCRIPTS[@]}"
 do
-    Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
+    Rscript ./scripts/$i $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
 done
 
 cp ./config/params.csv ./config/samples.csv $OUT_DIR
