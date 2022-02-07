@@ -84,6 +84,7 @@ fi
 # for i in $(eval echo "{$check_begin..$check_end}")
 for i in "${SCRIPTS[@]}"
 do
+    echo "coreSC version commit $(git rev-parse --short HEAD)" >> $OUT_DIR/log.txt
     Rscript ./scripts/$i $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
 done
 
