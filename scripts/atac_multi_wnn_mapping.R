@@ -302,7 +302,9 @@ for (i in 1:nrow(samples)) {
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
-  ) + ggtitle("RNA")
+  ) +
+    ggtitle("RNA") +
+    NoLegend()
 
   p2 <- DimPlot(
     x,
@@ -311,7 +313,9 @@ for (i in 1:nrow(samples)) {
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
-  ) + ggtitle("ATAC")
+  ) +
+    ggtitle("ATAC") +
+    NoLegend()
 
   p3 <- DimPlot(
     x,
@@ -320,7 +324,9 @@ for (i in 1:nrow(samples)) {
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
-  ) + ggtitle("WNN")
+  ) +
+    ggtitle("WNN") +
+    NoLegend()
 
 #  p1 <- DimPlot(
 #    x,
@@ -354,7 +360,7 @@ for (i in 1:nrow(samples)) {
     paste0(samples$name[i], "_clustered"),
     width = 18,
     height = 6
-  ) & NoLegend()
+  )
   str_section_head("Clustered")
 
   ## to make the visualization easier, subset T cell clusters
@@ -421,6 +427,9 @@ for (i in 1:nrow(samples)) {
 
   warnings()
 
+  x@meta.data$object <- samples$name[i]
+  x@meta.data$group <- samples$group[i]
+
   assign( # giving names to objects
     samples$name[i],
     x
@@ -440,3 +449,6 @@ if (length(samples$name) == 1) {
   }
   save_object(objects, "individual")
 }
+
+#combined <- Reduce(merge, objects)
+

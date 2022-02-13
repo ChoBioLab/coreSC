@@ -1,6 +1,6 @@
 # !/usr/bin/env Rscript
 
-library(dplyr)
+library(tidyverse)
 
 # capture bash vars
 args <- commandArgs(trailingOnly = T)
@@ -22,10 +22,10 @@ packages <- c(
 )
 
 # convenience functions
-save_figure <- function(plots, name, type = "png", width, height, res) {
+save_figure <- function(plots, name, type = "pdf", width, height) {
   if (type == "png") {
     png(paste0(out_path, name, ".", type),
-      width = 12, height = 6, units = "in"
+      width = 12, height = 6, units = "in", res = NA
     )
   } else {
     pdf(paste0(out_path, name, ".", type),
