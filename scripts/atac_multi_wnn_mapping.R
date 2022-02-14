@@ -13,7 +13,7 @@ library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 plan(multicore) # parallelization
-options(future.globals.maxSize = 3000 * 1024^2)
+options(future.globals.maxSize = 6000 * 1024^2)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
@@ -193,59 +193,59 @@ for (i in 1:nrow(samples)) {
     )
 
   # determine anchors between reference and query for mapping
-#  anchors <- FindTransferAnchors(
-#    reference = reference,
-#    query = x,
-#    normalization.method = "SCT",
-#    reference.reduction = "spca",
-#    dims = 1:50
-#  )
-#
-#  x <- MapQuery(
-#    anchorset = anchors,
-#    query = x,
-#    reference = reference,
-#    refdata = list(
-#      celltype.l1 = "celltype.l1",
-#      celltype.l2 = "celltype.l2",
-#      predicted_ADT = "ADT"
-#    ),
-#    reference.reduction = "spca",
-#    reduction.model = "wnn.umap"
-#  )
-#  str_section_head("WNN Mapped")
-#
-#  # merge reference and query
-#  reference$id <- "reference"
-#  x$id <- "query"
-#  refquery <- merge(
-#    reference,
-#    x
-#  )
-#
-#  refquery[["spca"]] <- merge(
-#    reference[["spca"]],
-#    x[["ref.spca"]]
-#  )
-#
-#  refquery <- RunUMAP(
-#    refquery,
-#    reduction = "spca",
-#    dims = 1:50
-#  )
-#
-#  p1 <- DimPlot(
-#    refquery,
-#    group.by = "id",
-#    shuffle = TRUE
-#  )
-#
-#  save_figure(
-#    p1,
-#    paste0(samples$name[i], "_mapping_dim")
-#  )
-#  # TODO need to save refquery object separately
-#
+  #  anchors <- FindTransferAnchors(
+  #    reference = reference,
+  #    query = x,
+  #    normalization.method = "SCT",
+  #    reference.reduction = "spca",
+  #    dims = 1:50
+  #  )
+  #
+  #  x <- MapQuery(
+  #    anchorset = anchors,
+  #    query = x,
+  #    reference = reference,
+  #    refdata = list(
+  #      celltype.l1 = "celltype.l1",
+  #      celltype.l2 = "celltype.l2",
+  #      predicted_ADT = "ADT"
+  #    ),
+  #    reference.reduction = "spca",
+  #    reduction.model = "wnn.umap"
+  #  )
+  #  str_section_head("WNN Mapped")
+  #
+  #  # merge reference and query
+  #  reference$id <- "reference"
+  #  x$id <- "query"
+  #  refquery <- merge(
+  #    reference,
+  #    x
+  #  )
+  #
+  #  refquery[["spca"]] <- merge(
+  #    reference[["spca"]],
+  #    x[["ref.spca"]]
+  #  )
+  #
+  #  refquery <- RunUMAP(
+  #    refquery,
+  #    reduction = "spca",
+  #    dims = 1:50
+  #  )
+  #
+  #  p1 <- DimPlot(
+  #    refquery,
+  #    group.by = "id",
+  #    shuffle = TRUE
+  #  )
+  #
+  #  save_figure(
+  #    p1,
+  #    paste0(samples$name[i], "_mapping_dim")
+  #  )
+  #  # TODO need to save refquery object separately
+  #
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
   DefaultAssay(x) <- "ATAC"
@@ -291,7 +291,7 @@ for (i in 1:nrow(samples)) {
     verbose = FALSE
   )
 
-  clust_idents <- na.omit(clusters[,i])
+  clust_idents <- na.omit(clusters[, i])
   names(clust_idents) <- levels(x)
   x <- RenameIdents(x, clust_idents)
   x$celltype <- Idents(x)
@@ -329,32 +329,32 @@ for (i in 1:nrow(samples)) {
     ggtitle("WNN") +
     NoLegend()
 
-#  p1 <- DimPlot(
-#    x,
-#    reduction = "umap.rna",
-#    group.by = "predicted.celltype.l2",
-#    label = TRUE,
-#    label.size = 2.5,
-#    repel = TRUE
-#  ) + ggtitle("RNA")
-#
-#  p2 <- DimPlot(
-#    x,
-#    reduction = "umap.atac",
-#    group.by = "predicted.celltype.l2",
-#    label = TRUE,
-#    label.size = 2.5,
-#    repel = TRUE
-#  ) + ggtitle("ATAC")
-#
-#  p3 <- DimPlot(
-#    x,
-#    reduction = "wnn.umap",
-#    group.by = "predicted.celltype.l2",
-#    label = TRUE,
-#    label.size = 2.5,
-#    repel = TRUE
-#  ) + ggtitle("WNN")
+  #  p1 <- DimPlot(
+  #    x,
+  #    reduction = "umap.rna",
+  #    group.by = "predicted.celltype.l2",
+  #    label = TRUE,
+  #    label.size = 2.5,
+  #    repel = TRUE
+  #  ) + ggtitle("RNA")
+  #
+  #  p2 <- DimPlot(
+  #    x,
+  #    reduction = "umap.atac",
+  #    group.by = "predicted.celltype.l2",
+  #    label = TRUE,
+  #    label.size = 2.5,
+  #    repel = TRUE
+  #  ) + ggtitle("ATAC")
+  #
+  #  p3 <- DimPlot(
+  #    x,
+  #    reduction = "wnn.umap",
+  #    group.by = "predicted.celltype.l2",
+  #    label = TRUE,
+  #    label.size = 2.5,
+  #    repel = TRUE
+  #  ) + ggtitle("WNN")
 
   save_figure(
     p1 + p2 + p3,
@@ -451,5 +451,42 @@ if (length(samples$name) == 1) {
   save_object(objects, "individual")
 }
 
-#combined <- Reduce(merge, objects)
+# integration
+# https://satijalab.org/signac/articles/integrate_atac.html
+combined <- Reduce(merge, objects)
 
+combined <- FindTopFeatures(
+  combined,
+  min.cutoff = 10
+) %>%
+  RunTFIDF() %>%
+  RunSVD() %>%
+  RunUMAP(
+    .,
+    reduction = "lsi",
+    dims = 2:30
+  )
+
+anchors <- FindIntegrationAnchors(
+  object.list = individual,
+  anchor.features = rownames(individual[1]),
+  reduction = "rlsi",
+  dims = 2:30
+)
+
+# integrate LSI embeddings
+integrated <- IntegrateEmbeddings(
+  anchorset = anchors,
+  reductions = combined[["lsi"]],
+  new.reduction.name = "integrated_lsi",
+  dims.to.integrate = 1:30
+)
+
+# create a new UMAP using the integrated embeddings
+integrated <- RunUMAP(
+  integrated,
+  reduction = "integrated_lsi",
+  dims = 2:30
+)
+
+save_object(integrated, "integrated")
