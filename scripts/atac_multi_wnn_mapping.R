@@ -291,7 +291,8 @@ for (i in 1:nrow(samples)) {
     verbose = FALSE
   )
 
-  clust_idents <- na.omit(clusters[i])
+  clust_idents <- na.omit(clusters[,i])
+  names(clust_idents) <- levels(x)
   x <- RenameIdents(x, clust_idents)
   x$celltype <- Idents(x)
 
