@@ -20,15 +20,15 @@ out_path <- paste0(args[1], "/")
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
-# load H5 reference for cluster mapping
-download.file(
-  url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
-  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
-  method = "wget",
-  quiet = TRUE
-)
+# # load H5 reference for cluster mapping
+# download.file(
+#   url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
+#   destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
+#   method = "wget",
+#   quiet = TRUE
+# )
 
-reference <- LoadH5Seurat(paste0(out_path, "tmp/pbmc_multimodal.h5seurat"))
+reference <- readRDS(params$["clust.ref", ])
 
 for (i in 1:nrow(samples)) {
   # the 10x hdf5 file contains both data types.
@@ -192,7 +192,7 @@ for (i in 1:nrow(samples)) {
       reduction.key = "rnaUMAP_"
     )
 
-  determine anchors between reference and query for mapping
+  # determine anchors between reference and query for mapping
    anchors <- FindTransferAnchors(
      reference = reference,
      query = x,
@@ -200,15 +200,13 @@ for (i in 1:nrow(samples)) {
      reference.reduction = "spca",
      dims = 1:50
    )
-  
+
    x <- MapQuery(
      anchorset = anchors,
      query = x,
      reference = reference,
      refdata = list(
-       celltype.l1 = "celltype.l1",
-       celltype.l2 = "celltype.l2",
-       predicted_ADT = "ADT"
+       celltype = "celltype"
      ),
      reference.reduction = "spca",
      reduction.model = "wnn.umap"
@@ -244,7 +242,8 @@ for (i in 1:nrow(samples)) {
      p1,
      paste0(samples$name[i], "_mapping_dim")
    )
-   # TODO need to save refquery object separately
+
+   save_H5object(refquery, "refquery_object")
 
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
@@ -291,10 +290,10 @@ for (i in 1:nrow(samples)) {
     verbose = FALSE
   )
 
-  clust_idents <- na.omit(clusters[, i])
-  names(clust_idents) <- levels(x)
-  x <- RenameIdents(x, clust_idents)
-  x$celltype <- Idents(x)
+#  clust_idents <- na.omit(clusters[, i])
+#  names(clust_idents) <- levels(x)
+#  x <- RenameIdents(x, clust_idents)
+#  x$celltype <- Idents(x)
 
   p1 <- DimPlot(
     x,
@@ -328,33 +327,6 @@ for (i in 1:nrow(samples)) {
   ) +
     ggtitle("WNN") +
     NoLegend()
-
-  #  p1 <- DimPlot(
-  #    x,
-  #    reduction = "umap.rna",
-  #    group.by = "predicted.celltype.l2",
-  #    label = TRUE,
-  #    label.size = 2.5,
-  #    repel = TRUE
-  #  ) + ggtitle("RNA")
-  #
-  #  p2 <- DimPlot(
-  #    x,
-  #    reduction = "umap.atac",
-  #    group.by = "predicted.celltype.l2",
-  #    label = TRUE,
-  #    label.size = 2.5,
-  #    repel = TRUE
-  #  ) + ggtitle("ATAC")
-  #
-  #  p3 <- DimPlot(
-  #    x,
-  #    reduction = "wnn.umap",
-  #    group.by = "predicted.celltype.l2",
-  #    label = TRUE,
-  #    label.size = 2.5,
-  #    repel = TRUE
-  #  ) + ggtitle("WNN")
 
   save_figure(
     p1 + p2 + p3,
@@ -449,44 +421,47 @@ if (length(samples$name) == 1) {
     )
   }
   save_object(objects, "individual")
+  save_H5object(objects, "individual")
 }
 
-# integration
-# https://satijalab.org/signac/articles/integrate_atac.html
-combined <- Reduce(merge, objects)
-
-combined <- FindTopFeatures(
-  combined,
-  min.cutoff = 10
-) %>%
-  RunTFIDF() %>%
-  RunSVD() %>%
-  RunUMAP(
-    .,
-    reduction = "lsi",
-    dims = 2:30
-  )
-
-anchors <- FindIntegrationAnchors(
-  object.list = objects,
-  anchor.features = rownames(objects[1]),
-  reduction = "rlsi",
-  dims = 2:30
-)
-
-# integrate LSI embeddings
-integrated <- IntegrateEmbeddings(
-  anchorset = anchors,
-  reductions = combined[["lsi"]],
-  new.reduction.name = "integrated_lsi",
-  dims.to.integrate = 1:30
-)
-
-# create a new UMAP using the integrated embeddings
-integrated <- RunUMAP(
-  integrated,
-  reduction = "integrated_lsi",
-  dims = 2:30
-)
-
-save_object(integrated, "integrated")
+# # integration
+# # https://satijalab.org/signac/articles/integrate_atac.html
+# combined <- Reduce(merge, objects)
+# 
+# combined <- FindTopFeatures(
+#   combined,
+#   min.cutoff = 10
+# ) %>%
+#   RunTFIDF() %>%
+#   RunSVD() %>%
+#   RunUMAP(
+#     .,
+#     reduction = "lsi",
+#     dims = 2:30
+#   )
+# 
+# anchors <- FindIntegrationAnchors(
+#   object.list = objects,
+#   anchor.features = rownames(objects[1]),
+#   reduction = "rlsi",
+#   dims = 2:30
+# )
+# 
+# # integrate LSI embeddings
+# integrated <- IntegrateEmbeddings(
+#   anchorset = anchors,
+#   reductions = combined[["lsi"]],
+#   new.reduction.name = "integrated_lsi",
+#   dims.to.integrate = 1:30
+# )
+# 
+# # create a new UMAP using the integrated embeddings
+# integrated <- RunUMAP(
+#   integrated,
+#   reduction = "integrated_lsi",
+#   dims = 2:30
+# )
+# 
+# save_object(integrated, "integrated")
+# save_H5object(integrated, "integrated")
+# 

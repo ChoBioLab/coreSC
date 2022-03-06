@@ -40,6 +40,10 @@ save_object <- function(object, name) {
   saveRDS(object, paste0(out_path, name, ".RDS"))
 }
 
+save_H5object <- function(object, name) {
+  SaveH5Seurat(object, paste0(out_path, name))
+}
+
 read_object <- function(name) {
   readRDS(paste0(out_path, name, ".RDS"))
 }
