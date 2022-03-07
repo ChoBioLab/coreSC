@@ -28,7 +28,7 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 #   quiet = TRUE
 # )
 
-reference <- readRDS(params$["clust.ref", ])
+reference <- readRDS(params["clust.ref", ])
 
 for (i in 1:nrow(samples)) {
   # the 10x hdf5 file contains both data types.
@@ -183,6 +183,7 @@ for (i in 1:nrow(samples)) {
   DefaultAssay(x) <- "RNA"
   x <- SCTransform(
     x,
+    method = "glmGamPoi",
     verbose = FALSE
   ) %>%
     RunPCA() %>%
@@ -424,44 +425,44 @@ if (length(samples$name) == 1) {
   save_H5object(objects, "individual")
 }
 
-# # integration
-# # https://satijalab.org/signac/articles/integrate_atac.html
-# combined <- Reduce(merge, objects)
-# 
-# combined <- FindTopFeatures(
-#   combined,
-#   min.cutoff = 10
-# ) %>%
-#   RunTFIDF() %>%
-#   RunSVD() %>%
-#   RunUMAP(
-#     .,
-#     reduction = "lsi",
-#     dims = 2:30
-#   )
-# 
-# anchors <- FindIntegrationAnchors(
-#   object.list = objects,
-#   anchor.features = rownames(objects[1]),
-#   reduction = "rlsi",
-#   dims = 2:30
-# )
-# 
-# # integrate LSI embeddings
-# integrated <- IntegrateEmbeddings(
-#   anchorset = anchors,
-#   reductions = combined[["lsi"]],
-#   new.reduction.name = "integrated_lsi",
-#   dims.to.integrate = 1:30
-# )
-# 
-# # create a new UMAP using the integrated embeddings
-# integrated <- RunUMAP(
-#   integrated,
-#   reduction = "integrated_lsi",
-#   dims = 2:30
-# )
-# 
-# save_object(integrated, "integrated")
-# save_H5object(integrated, "integrated")
-# 
+## integration
+## https://satijalab.org/signac/articles/integrate_atac.html
+#combined <- Reduce(merge, objects)
+#
+#combined <- FindTopFeatures(
+#  combined,
+#  min.cutoff = 10
+#) %>%
+#  RunTFIDF() %>%
+#  RunSVD() %>%
+#  RunUMAP(
+#    .,
+#    reduction = "lsi",
+#    dims = 2:30
+#  )
+#
+#anchors <- FindIntegrationAnchors(
+#  object.list = objects,
+#  anchor.features = rownames(objects[1]),
+#  reduction = "rlsi",
+#  dims = 2:30
+#)
+#
+## integrate LSI embeddings
+#integrated <- IntegrateEmbeddings(
+#  anchorset = anchors,
+#  reductions = combined[["lsi"]],
+#  new.reduction.name = "integrated_lsi",
+#  dims.to.integrate = 1:30
+#)
+#
+## create a new UMAP using the integrated embeddings
+#integrated <- RunUMAP(
+#  integrated,
+#  reduction = "integrated_lsi",
+#  dims = 2:30
+#)
+#
+#save_object(integrated, "integrated")
+#save_H5object(integrated, "integrated")
+#

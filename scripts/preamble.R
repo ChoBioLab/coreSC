@@ -21,6 +21,9 @@ packages <- c(
   "future"
 )
 
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install("glmGamPoi")
+
 # convenience functions
 save_figure <- function(plots, name, type = "pdf", width, height) {
   if (type == "png") {
