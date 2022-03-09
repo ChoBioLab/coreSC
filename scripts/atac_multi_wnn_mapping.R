@@ -466,3 +466,5 @@ if (length(samples$name) == 1) {
 #save_object(integrated, "integrated")
 #save_H5object(integrated, "integrated")
 #
+
+sessionInfo()
