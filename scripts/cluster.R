@@ -2,22 +2,48 @@
 
 library(Seurat)
 library(dplyr)
-library(future)
+library(future) # parallelization
 
-plan(multicore)
+plan(multicore) # parallelization
 options(future.globals.maxSize = 2000 * 1024^2)
 
-load("./tmp/base_image.RData")
-x <- readRDS("./tmp/tmp_object.RDS")
-d <- params["dims", ]
+args <- commandArgs(trailingOnly = T)
+out_path <- paste0(args[1], "/")
 
-all.genes <- rownames(x)
+load(paste0(out_path, "tmp/preamble_image.RData"))
+x <- read_object("individual")
 
-x <- ScaleData(
-  x,
-  verbose = FALSE,
-  features = all.genes
-)
+message("object check")
+str(x)
+# run check for single sample
+if (length(samples$name) == 1) {
+  message("Single sample detected - skipping integration")
+} else { # integrate
+  features <- SelectIntegrationFeatures(
+    object.list = objects
+  )
+
+  x <- FindIntegrationAnchors(
+    object.list = objects,
+    dims = 1:d,
+    anchor.features = features
+  )
+
+  x <- IntegrateData(
+    anchorset = x,
+    dims = 1:d
+  )
+
+  DefaultAssay(x) <- "integrated"
+  str_section_noloop("Integrated") # logging
+
+  genes <- rownames(x)
+  x <- ScaleData(
+    x,
+    verbose = FALSE,
+    features = genes
+  )
+}
 
 x <- RunPCA(
   x,
@@ -25,22 +51,25 @@ x <- RunPCA(
   verbose = FALSE
 )
 
-x <- JackStraw(x)
+x <- JackStraw(
+  x,
+  num.replicate = 100
+)
 
 x <- ScoreJackStraw(
   x,
   dims = 1:d
 )
 
-plot1 <- JackStrawPlot(
+p1 <- JackStrawPlot(
   x,
   dims = 1:d
 )
 
-plot2 <- ElbowPlot(x)
+p2 <- ElbowPlot(x)
 
 save_figure(
-  (plot1 + plot2),
+  (p1 + p2),
   "dimensionality",
   width = 12,
   height = 6
@@ -51,7 +80,6 @@ x <- RunUMAP(
   reduction = "pca",
   dims = 1:d
 )
-
 str_section_noloop("Reduced") # logging
 
 x <- FindNeighbors(
@@ -64,8 +92,32 @@ x <- FindClusters(
   x,
   resolution = params["res", ]
 )
-
 str_section_noloop("Clustered") # logging
 
+p1 <- DimPlot(
+  x,
+  reduction = "umap",
+  group.by = "group"
+)
+
+p2 <- DimPlot(
+  x,
+  reduction = "umap",
+  label = T
+)
+
+save_figure(
+  (p1 + p2),
+  "combined_dimplot_red",
+  width = 12,
+  height = 6
+)
+
+y <- FindAllMarkers(x)
+
 save_object(x, "clustered")
+save_object(y, "markers")
+
 print("End of cluster.R")
+
+sessionInfo()

@@ -1,0 +1,4 @@
+clust_num,sample1,sample2,sample3
+0,NK,CD14_Mono,Treg
+1,CD14_Mono,NK,CD14_Mono
+2,Treg,plasma,

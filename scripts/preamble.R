@@ -1,11 +1,16 @@
 # !/usr/bin/env Rscript
 
+library(tidyverse)
+
 # capture bash vars
 args <- commandArgs(trailingOnly = T)
 
 out_path <- paste0(args[1], "/")
 params <- read.csv("./config/params.csv", row.names = 1)
 samples <- read.csv("./config/samples.csv")
+clusters <- read_csv("./config/clust_ann.csv") %>%
+    remove_rownames %>%
+    column_to_rownames(var = "clust_num")
 
 # package install check and load
 packages <- c(
@@ -16,24 +21,18 @@ packages <- c(
   "future"
 )
 
-package_check <- lapply(
-  packages,
-  function(x) {
-    if (!require(x, character.only = T)) {
-      install.packages(x, dependencies = T)
-    }
-  }
-)
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install("glmGamPoi")
 
 # convenience functions
-save_figure <- function(plots, name, type = "png", width, height, res) {
+save_figure <- function(plots, name, type = "pdf", width, height) {
   if (type == "png") {
     png(paste0(out_path, name, ".", type),
-      width = width, height = height, units = "in", res = 200
+      width = 12, height = 6, units = "in", res = NA
     )
   } else {
     pdf(paste0(out_path, name, ".", type),
-      width = width, height = height
+      width = 12, height = 6
     )
   }
   print(plots)
@@ -42,6 +41,10 @@ save_figure <- function(plots, name, type = "png", width, height, res) {
 
 save_object <- function(object, name) {
   saveRDS(object, paste0(out_path, name, ".RDS"))
+}
+
+save_H5object <- function(object, name) {
+  SaveH5Seurat(object, paste0(out_path, name))
 }
 
 read_object <- function(name) {
@@ -74,6 +77,8 @@ str_section_noloop <- function(title) {
   str(x)
 }
 
-save.image("./tmp/base_image.RData")
+d <- params["dims", ]
+
+save.image(paste0(out_path, "tmp/preamble_image.RData"))
 
 print("End of preamble.R")

@@ -10,17 +10,16 @@ trap on_failure ERR
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
 check_begin=0 # process number iterates from 1 for user
-check_end=3
+check_end=2
 
-SCRIPTS=(
-    "preamble.R"
-    "create_object.R"
-    "cluster.R"
-    "visualize.R"
+declare -a SCRIPTS=(
+"preamble.R"
+"create_object.R"
+"cluster.R"
 )
 
 # pass arguments from cli
-while getopts b:e:i:m: option
+while getopts b:e:i:m:M:a: option
 do
     case "${option}"
         in
@@ -28,6 +27,8 @@ do
         e) check_end=${OPTARG};;
         i) check_input=${OPTARG};;
         m) merge_combine=${OPTARG};;
+        M) multimodal=${OPTARG};;
+        a) atac=${OPTARG};;
     esac
 done
 
@@ -44,7 +45,7 @@ then
     fi
 else
     OUT_DIR="output/output_$TIMESTAMP"
-    mkdir -p $OUT_DIR tmp
+    mkdir -p $OUT_DIR $OUT_DIR/tmp
 fi
 
 # do check for sample combine preference
@@ -57,18 +58,35 @@ else
     echo "Combining samples using integration"
 fi
 
+# do check for sample combine preference
+if [[ "${multimodal:-}" == "TRUE" ]]
+then
+    echo "Creating multimodal object"
+    SCRIPTS=("${SCRIPTS[@]/object/multimodal}")
+    echo "${SCRIPTS[@]}"
+elif [[ "${atac:-}" == "TRUE" ]]
+then
+    echo "Creating ATAC object"
+    SCRIPTS=("preamble.R" "atac_multi_wnn_mapping.R")
+    echo "${SCRIPTS[@]}"
+    check_end=1
+else
+    echo "Creating traditional Seurat object"
+fi
+
 # adjust index from human to bash
-if [[ $check_end -ne 3 ]]
+if [[ $check_end -ne 2 ]]
 then
     check_end=$((check_end - 1))
-    echo "$check_end"
 fi
 
 # execute pipeline scripts
-for i in $(eval echo "{$check_begin..$check_end}")
+# for i in $(eval echo "{$check_begin..$check_end}")
+for i in "${SCRIPTS[@]}"
 do
-    Rscript ./scripts/${SCRIPTS[$i]} $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
+    echo "coreSC version commit $(git rev-parse --short HEAD)" >> $OUT_DIR/log.txt
+    Rscript ./scripts/$i $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
 done
 
 cp ./config/params.csv ./config/samples.csv $OUT_DIR
-rm ./tmp/*
+rm -rf $OUT_DIR/tmp
