@@ -20,15 +20,16 @@ out_path <- paste0(args[1], "/")
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
-# # load H5 reference for cluster mapping
-# download.file(
-#   url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
-#   destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
-#   method = "wget",
-#   quiet = TRUE
-# )
+# load H5 reference for cluster mapping
+download.file(
+  url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
+  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
+  method = "wget",
+  quiet = TRUE
+)
 
-reference <- LoadH5Seurat(params["clust.ref", ])
+#reference <- LoadH5Seurat(params["clust.ref", ])
+reference <- LoadH5Seurat(paste0(out_path, "tmp/pbmc_multimodal.h5seurat"))
 
 for (i in 1:nrow(samples)) {
   # the 10x hdf5 file contains both data types.
@@ -207,7 +208,7 @@ for (i in 1:nrow(samples)) {
      query = x,
      reference = reference,
      refdata = list(
-       celltype = "celltype"
+       celltype.l2 = "celltype.l2"
      ),
      reference.reduction = "spca",
      reduction.model = "wnn.umap"
@@ -299,7 +300,7 @@ for (i in 1:nrow(samples)) {
   p1 <- DimPlot(
     x,
     reduction = "umap.rna",
-    group.by = "celltype",
+    group.by = "predicted.celltype.l2",
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
@@ -310,7 +311,7 @@ for (i in 1:nrow(samples)) {
   p2 <- DimPlot(
     x,
     reduction = "umap.atac",
-    group.by = "celltype",
+    group.by = "predicted.celltype.l2",
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
@@ -321,7 +322,7 @@ for (i in 1:nrow(samples)) {
   p3 <- DimPlot(
     x,
     reduction = "wnn.umap",
-    group.by = "celltype",
+    group.by = "predicted.celltype.l2",
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
