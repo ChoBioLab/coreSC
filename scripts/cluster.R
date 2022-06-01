@@ -5,16 +5,14 @@ library(dplyr)
 library(future) # parallelization
 
 plan(multicore) # parallelization
-options(future.globals.maxSize = 2000 * 1024^2)
+options(future.globals.maxSize = 8000 * 1024^2)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
-x <- read_object("individual")
+objects <- read_object("individual")
 
-message("object check")
-str(x)
 # run check for single sample
 if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
