@@ -8,5 +8,4 @@ max.percent.mt,30
 min.percent.mt,0
 dims,20
 res,0.6
-clust.ref,/path/to/reference/object
 

@@ -28,7 +28,7 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 #   quiet = TRUE
 # )
 
-reference <- LoadH5Seuerat(params["clust.ref", ])
+# reference <- LoadH5Seuerat(params["clust.ref", ])
 
 for (i in 1:nrow(samples)) {
   # the 10x hdf5 file contains both data types.
