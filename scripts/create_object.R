@@ -1,6 +1,7 @@
 # !/usr/bin/env Rscript
 
 library(Seurat)
+library(SeuratDisk)
 library(dplyr)
 library(patchwork)
 library(future) # parallelization

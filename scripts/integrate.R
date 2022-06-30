@@ -1,6 +1,7 @@
 # !/usr/bin/env Rscript
 
 library(Seurat)
+library(SeuratDisk)
 library(dplyr)
 library(future) # parallelization
 
@@ -90,7 +91,7 @@ y <- FindAllMarkers(
   verbose = FALSE
 )
 
-save_object(x, "clustered")
+save_h5(x, "clustered")
 save_object(y, "all_markers")
 
 print("End of integrated.R")
