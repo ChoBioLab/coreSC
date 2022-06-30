@@ -11,7 +11,7 @@ args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
-objects <- read_object("individual")
+objects <- read_object("individual_clustered")
 
 # run check for single sample
 if (length(samples$name) == 1) {
@@ -22,76 +22,46 @@ if (length(samples$name) == 1) {
     object.list = objects
   )
 
-  x <- FindIntegrationAnchors(
+  # preprocessing step for SCT specific integration
+  objects <- PrepSCTIntegration(
     object.list = objects,
-    dims = 1:d,
+    anchor.features = features
+  )
+
+  anchors <- FindIntegrationAnchors(
+    object.list = objects,
+    normalization.method = "SCT",
     anchor.features = features
   )
 
   x <- IntegrateData(
-    anchorset = x,
-    dims = 1:d
+    anchorset = anchors,
+    normalization.method = "SCT"
   )
 
   DefaultAssay(x) <- "integrated"
   str_section_noloop("Integrated") # logging
-
-  genes <- rownames(x)
-  x <- ScaleData(
-    x,
-    verbose = FALSE,
-    features = genes
-  )
 }
 
+# dim red and clustering
 x <- RunPCA(
   x,
   npcs = d,
   verbose = FALSE
-)
+) %>%
+  RunUMAP(
+    reduction = "pca",
+    dims = 1:d
+  ) %>%
+  FindNeighbors(
+    reduction = "pca",
+    dims = 1:d
+  ) %>%
+  FindClusters(
+    resolution = params["res", ]
+  )
 
-x <- JackStraw(
-  x,
-  num.replicate = 100
-)
-
-x <- ScoreJackStraw(
-  x,
-  dims = 1:d
-)
-
-p1 <- JackStrawPlot(
-  x,
-  dims = 1:d
-)
-
-p2 <- ElbowPlot(x)
-
-save_figure(
-  (p1 + p2),
-  "dimensionality",
-  width = 12,
-  height = 6
-)
-
-x <- RunUMAP(
-  x,
-  reduction = "pca",
-  dims = 1:d
-)
-str_section_noloop("Reduced") # logging
-
-x <- FindNeighbors(
-  x,
-  reduction = "pca",
-  dims = 1:d
-)
-
-x <- FindClusters(
-  x,
-  resolution = params["res", ]
-)
-str_section_noloop("Clustered") # logging
+str_section_noloop("Reduced & Clustered") # logging
 
 p1 <- DimPlot(
   x,
@@ -112,11 +82,17 @@ save_figure(
   height = 6
 )
 
-y <- FindAllMarkers(x)
+x <- PrepSCTFindMarkers(x)
+
+y <- FindAllMarkers(
+  x,
+  assay = "SCT",
+  verbose = FALSE
+)
 
 save_object(x, "clustered")
-save_object(y, "markers")
+save_object(y, "all_markers")
 
-print("End of cluster.R")
+print("End of integrated.R")
 
 sessionInfo()

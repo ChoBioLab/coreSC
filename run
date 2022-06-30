@@ -15,7 +15,7 @@ check_end=2
 declare -a SCRIPTS=(
 "preamble.R"
 "create_object.R"
-"cluster.R"
+"integrate.R"
 )
 
 # pass arguments from cli

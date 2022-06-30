@@ -194,57 +194,57 @@ for (i in 1:nrow(samples)) {
     )
 
   # determine anchors between reference and query for mapping
-   anchors <- FindTransferAnchors(
-     reference = reference,
-     query = x,
-     normalization.method = "SCT",
-     reference.reduction = "spca",
-     dims = 1:50
-   )
+  anchors <- FindTransferAnchors(
+    reference = reference,
+    query = x,
+    normalization.method = "SCT",
+    reference.reduction = "spca",
+    dims = 1:50
+  )
 
-   x <- MapQuery(
-     anchorset = anchors,
-     query = x,
-     reference = reference,
-     refdata = list(
-       celltype = "celltype"
-     ),
-     reference.reduction = "spca",
-     reduction.model = "wnn.umap"
-   )
-   str_section_head("WNN Mapped")
+  x <- MapQuery(
+    anchorset = anchors,
+    query = x,
+    reference = reference,
+    refdata = list(
+      celltype = "celltype"
+    ),
+    reference.reduction = "spca",
+    reduction.model = "wnn.umap"
+  )
+  str_section_head("WNN Mapped")
 
-   # merge reference and query
-   reference$id <- "reference"
-   x$id <- "query"
-   refquery <- merge(
-     reference,
-     x
-   )
+  # merge reference and query
+  reference$id <- "reference"
+  x$id <- "query"
+  refquery <- merge(
+    reference,
+    x
+  )
 
-   refquery[["spca"]] <- merge(
-     reference[["spca"]],
-     x[["ref.spca"]]
-   )
+  refquery[["spca"]] <- merge(
+    reference[["spca"]],
+    x[["ref.spca"]]
+  )
 
-   refquery <- RunUMAP(
-     refquery,
-     reduction = "spca",
-     dims = 1:50
-   )
+  refquery <- RunUMAP(
+    refquery,
+    reduction = "spca",
+    dims = 1:50
+  )
 
-   p1 <- DimPlot(
-     refquery,
-     group.by = "id",
-     shuffle = TRUE
-   )
+  p1 <- DimPlot(
+    refquery,
+    group.by = "id",
+    shuffle = TRUE
+  )
 
-   save_figure(
-     p1,
-     paste0(samples$name[i], "_mapping_dim")
-   )
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_mapping_dim")
+  )
 
-   save_H5object(refquery, "refquery_object")
+  save_H5object(refquery, "refquery_object")
 
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
@@ -291,10 +291,10 @@ for (i in 1:nrow(samples)) {
     verbose = FALSE
   )
 
-#  clust_idents <- na.omit(clusters[, i])
-#  names(clust_idents) <- levels(x)
-#  x <- RenameIdents(x, clust_idents)
-#  x$celltype <- Idents(x)
+  #  clust_idents <- na.omit(clusters[, i])
+  #  names(clust_idents) <- levels(x)
+  #  x <- RenameIdents(x, clust_idents)
+  #  x$celltype <- Idents(x)
 
   p1 <- DimPlot(
     x,
@@ -427,12 +427,12 @@ if (length(samples$name) == 1) {
 
 ## integration
 ## https://satijalab.org/signac/articles/integrate_atac.html
-#combined <- Reduce(merge, objects)
+# combined <- Reduce(merge, objects)
 #
-#combined <- FindTopFeatures(
+# combined <- FindTopFeatures(
 #  combined,
 #  min.cutoff = 10
-#) %>%
+# ) %>%
 #  RunTFIDF() %>%
 #  RunSVD() %>%
 #  RunUMAP(
@@ -441,30 +441,30 @@ if (length(samples$name) == 1) {
 #    dims = 2:30
 #  )
 #
-#anchors <- FindIntegrationAnchors(
+# anchors <- FindIntegrationAnchors(
 #  object.list = objects,
 #  anchor.features = rownames(objects[1]),
 #  reduction = "rlsi",
 #  dims = 2:30
-#)
+# )
 #
 ## integrate LSI embeddings
-#integrated <- IntegrateEmbeddings(
+# integrated <- IntegrateEmbeddings(
 #  anchorset = anchors,
 #  reductions = combined[["lsi"]],
 #  new.reduction.name = "integrated_lsi",
 #  dims.to.integrate = 1:30
-#)
+# )
 #
 ## create a new UMAP using the integrated embeddings
-#integrated <- RunUMAP(
+# integrated <- RunUMAP(
 #  integrated,
 #  reduction = "integrated_lsi",
 #  dims = 2:30
-#)
+# )
 #
-#save_object(integrated, "integrated")
-#save_H5object(integrated, "integrated")
+# save_object(integrated, "integrated")
+# save_H5object(integrated, "integrated")
 #
 
 sessionInfo()

@@ -2,6 +2,7 @@
 
 library(Seurat)
 library(dplyr)
+library(patchwork)
 library(future) # parallelization
 
 plan(multicore) # parallelization
@@ -72,20 +73,40 @@ for (i in 1:nrow(samples)) {
     x,
     nFeature_RNA > params["min.features", ] &
       nFeature_RNA < params["max.features", ] &
-    nCount_RNA > params["min.count", ] &
+      nCount_RNA > params["min.count", ] &
       nCount_RNA < params["max.count", ] &
       percent.mt < params["max.percent.mt", ] &
       percent.mt > params["min.percent.mt", ]
   )
 
-  x <- NormalizeData(x)
-  str_section_head("Subset, Normalized") # logging
+  # norm, dimred, and clustering
 
-  x <- FindVariableFeatures(
+  # clustering is performed on individual samples for QC
+  x <- SCTransform(
     x,
-    selection.method = "vst",
-    nfeatures = params["max.features", ]
-  )
+    vst.flavor = "v2",
+    verbose = FALSE
+  ) %>%
+    RunPCA(
+      npcs = d,
+      verbose = FALSE
+    ) %>%
+    RunUMAP(
+      reduction = "pca",
+      dims = 1:d,
+      verbose = FALSE
+    ) %>%
+    FindNeighbors(
+      reduction = "pca",
+      dims = 1:d,
+      verbose = FALSE
+    ) %>%
+    FindClusters(
+      resolution = params["res", ],
+      verbose = FALSE
+    )
+
+  str_section_head("Subset, SCT Normd, Red, Clust") # logging
 
   top10 <- head(VariableFeatures(x), 10)
   p1 <- VariableFeaturePlot(x)
@@ -102,25 +123,36 @@ for (i in 1:nrow(samples)) {
     height = 6
   )
 
-  genes <- rownames(x)
-  x <- ScaleData(
-    x,
-    verbose = FALSE,
-    features = genes
-  )
-
   x@meta.data$object <- samples$name[i]
   x@meta.data$group <- samples$group[i]
+
+  p1 <- DimPlot(
+    x,
+    reduction = "umap",
+    group.by = "group"
+  )
+
+  p2 <- DimPlot(
+    x,
+    reduction = "umap",
+    label = T
+  )
+
+  save_figure(
+    (p1 + p2),
+    paste0(samples$name[i], "individual_dimplot"),
+    width = 12,
+    height = 6
+  )
 
   assign( # giving names to objects
     samples$name[i],
     x
   )
-  str_section_head("Scaled") # logging
 }
 
 if (length(samples$name) == 1) {
-  save_object(x, "individual")
+  save_object(x, "individual_clustered")
 } else { # integrate
   # create and save list of seurat objects
   objects <- list()
@@ -131,7 +163,7 @@ if (length(samples$name) == 1) {
     )
   }
 
-  save_object(objects, "individual")
+  save_object(objects, "individual_clustered")
 }
 
 print("End of create_object.R")

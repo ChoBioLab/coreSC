@@ -8,7 +8,7 @@ args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
 params <- read.csv("./config/params.csv", row.names = 1)
 samples <- read.csv("./config/samples.csv")
-#clusters <- read_csv("./config/clust_ann.csv") %>%
+# clusters <- read_csv("./config/clust_ann.csv") %>%
 #    remove_rownames %>%
 #    column_to_rownames(var = "clust_num")
 
