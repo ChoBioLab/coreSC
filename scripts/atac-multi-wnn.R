@@ -169,7 +169,7 @@ for (i in 1:nrow(samples)) {
   x <- subset(
     x = x,
     subset = nCount_ATAC < 7e4 &
-      nCount_ATAC > 5e3 &
+      nCount_ATAC > 1e3 & # justified lowering from 5e3 to capture more cells
       nCount_RNA < 25000 &
       nCount_RNA > 1000 &
       pct_reads_in_peaks > 15 &
