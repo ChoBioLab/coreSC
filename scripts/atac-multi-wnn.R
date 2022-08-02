@@ -172,7 +172,7 @@ for (i in 1:nrow(samples)) {
       nCount_ATAC > 1e3 & # justified lowering from 5e3 to capture more cells
       nCount_RNA < 25000 &
       nCount_RNA > 1000 &
-      pct_reads_in_peaks > 15 &
+      pct_reads_in_peaks > 20 &
       nucleosome_signal < 2 &
       TSS.enrichment > 1 &
       percent.mt < 20
