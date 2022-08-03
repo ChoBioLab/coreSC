@@ -14,7 +14,7 @@ check_end=2
 
 declare -a SCRIPTS=(
 "preamble.R"
-"create_object.R"
+"create-object.R"
 "integrate.R"
 )
 
@@ -67,7 +67,7 @@ then
 elif [[ "${atac:-}" == "TRUE" ]]
 then
     echo "Creating ATAC object"
-    SCRIPTS=("preamble.R" "atac_multi_wnn_mapping.R")
+    SCRIPTS=("preamble.R" "atac-multi-wnn.R")
     echo "${SCRIPTS[@]}"
     check_end=1
 else

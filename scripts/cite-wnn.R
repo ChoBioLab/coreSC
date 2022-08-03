@@ -15,23 +15,27 @@ out_path <- paste0(args[1], "/")
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
 for (i in 1:nrow(samples)) {
-  x <- Read10X( # pulling data with no filter
+  raw <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
   )
   str_section_head("Raw Object") # logging
 
-  x <- CreateSeuratObject( # certain data will gen null matrix sans filters
-    counts = x,
-    project = samples$project[i],
-    min.cells = params["min.cells", ],
-    min.features = params["min.features", ]
+  rna <- raw$`Gene Expression`
+  adt <- raw$`Antibody Capture`
+
+  x <- CreateSeuratObject(
+    counts = rna,
+    project = samples$project[i]
   )
+
+  x[["ADT"]] <- CreateAssayObject(counts = adt)
 
   x[["percent.mt"]] <- PercentageFeatureSet(
     x,
     pattern = "(?i)^MT-"
   )
 
+  # raw qc plots
   p1 <- VlnPlot(
     x,
     features = c(
@@ -44,7 +48,23 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_unfilt_vln"),
+    paste0(samples$name[i], "_rna_unfilt_vln"),
+    width = 12,
+    height = 6
+  )
+
+  p1 <- VlnPlot(
+    x,
+    features = c(
+      "nFeature_ADT",
+      "nCount_ADT",
+    ),
+    ncol = 2
+  )
+
+  save_figure(
+    p1,
+    paste0(samples$name[i], "_adt_unfilt_vln"),
     width = 12,
     height = 6
   )
@@ -59,6 +79,12 @@ for (i in 1:nrow(samples)) {
     x,
     feature1 = "nCount_RNA",
     feature2 = "nFeature_RNA"
+  )
+
+  p3 <- FeatureScatter(
+    x,
+    feature1 = "nCount_ADT",
+    feature2 = "nFeature_ADT"
   )
 
   save_figure(
@@ -81,8 +107,8 @@ for (i in 1:nrow(samples)) {
   )
 
   # norm, dimred, and clustering
-
-  # clustering is performed on individual samples for QC
+  # clustering is performed on individual samples for RNA QC
+  DefaultAssay(x) <- "RNA"
   x <- SCTransform(
     x,
     vst.flavor = "v2",
@@ -91,23 +117,85 @@ for (i in 1:nrow(samples)) {
     RunPCA(
       npcs = d,
       verbose = FALSE
-    ) %>%
-    RunUMAP(
-      reduction = "pca",
-      dims = 1:d,
-      verbose = FALSE
-    ) %>%
-    FindNeighbors(
-      reduction = "pca",
-      dims = 1:d,
-      verbose = FALSE
-    ) %>%
-    FindClusters(
-      resolution = params["res", ],
-      verbose = FALSE
     )
 
+  DefaultAssay(x) <- "ADT"
+  VariableFeatures(x) <- rownames(x[["ADT"]])
+  x <- NormalizeData(
+    x,
+    normalization.method = "CLR",
+    margin = 2
+  ) %>%
+    ScaleData() %>%
+    RunPCA(reduction.name = "apca")
+
+  # neighborhood formation and clustering
+  x <- FindMultiModalNeighbors(
+    x,
+    reduction.list = list("pca", "apca"),
+    dims.list = list(1:d, 1:18),
+    modality.weight.name = "RNA.weight"
+  )
+
+  x <- RunUMAP(
+    x,
+    nn.name = "weighted.nn",
+    reduction.name = "wnn.umap",
+    reduction.key = "wnnUMAP_"
+  )
+
+  x <- FindClusters(
+    x,
+    graph.name = "wsnn",
+    algorithm = 3,
+    resolution = params["res", ],
+    verbose = FALSE
+  )
+
   str_section_head("Subset, SCT Normd, Red, Clust") # logging
+
+  p1 <- DimPlot(
+    x,
+    reduction = "wnn.umap",
+    label = TRUE,
+    repel = TRUE,
+    label.size = 2.5
+  ) + NoLegend()
+
+  # clustering by modality
+  x <- RunUMAP(
+    x,
+    reduction = "pca",
+    dims = 1:d,
+    assay = "RNA",
+    reduction.name = "rna.umap",
+    reduction.key = "rnaUMAP_"
+  )
+
+  x <- RunUMAP(
+    x,
+    reduction = "apca",
+    dims = 1:18,
+    assay = "ADT",
+    reduction.name = "adt.umap",
+    reduction.key = "adtUMAP_"
+  )
+
+  p3 <- DimPlot(
+    x,
+    reduction = "rna.umap",
+    label = TRUE,
+    repel = TRUE,
+    label.size = 2.5
+  ) + NoLegend()
+
+  p4 <- DimPlot(
+    x,
+    reduction = "adt.umap",
+    label = TRUE,
+    repel = TRUE,
+    label.size = 2.5
+  ) + NoLegend()
 
   top10 <- head(VariableFeatures(x), 10)
   p1 <- VariableFeaturePlot(x)
@@ -127,15 +215,17 @@ for (i in 1:nrow(samples)) {
   x@meta.data$object <- samples$name[i]
   x@meta.data$group <- samples$group[i]
 
+  # plotting clusters by specified group
   p1 <- DimPlot(
     x,
-    reduction = "umap",
-    group.by = "group"
+    reduction = "wnn.umap",
+    group.by = "group",
+    label = T
   )
 
   p2 <- DimPlot(
     x,
-    reduction = "umap",
+    reduction = "wnn.umap",
     label = T
   )
 
@@ -167,4 +257,6 @@ if (length(samples$name) == 1) {
   save_object(objects, "individual_clustered")
 }
 
-print("End of create_object.R")
+sessionInfo()
+
+print("End of cite-wnn.R")
