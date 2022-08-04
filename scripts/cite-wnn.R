@@ -4,6 +4,7 @@ library(Seurat)
 library(SeuratDisk)
 library(dplyr)
 library(patchwork)
+library(ggplot2)
 library(future) # parallelization
 
 plan(multicore) # parallelization
@@ -57,7 +58,7 @@ for (i in 1:nrow(samples)) {
     x,
     features = c(
       "nFeature_ADT",
-      "nCount_ADT",
+      "nCount_ADT"
     ),
     ncol = 2
   )
@@ -154,14 +155,6 @@ for (i in 1:nrow(samples)) {
 
   str_section_head("Subset, SCT Normd, Red, Clust") # logging
 
-  p1 <- DimPlot(
-    x,
-    reduction = "wnn.umap",
-    label = TRUE,
-    repel = TRUE,
-    label.size = 2.5
-  ) + NoLegend()
-
   # clustering by modality
   x <- RunUMAP(
     x,
@@ -181,34 +174,37 @@ for (i in 1:nrow(samples)) {
     reduction.key = "adtUMAP_"
   )
 
-  p3 <- DimPlot(
+  p1 <- DimPlot(
     x,
     reduction = "rna.umap",
     label = TRUE,
     repel = TRUE,
     label.size = 2.5
-  ) + NoLegend()
+  ) + NoLegend() +
+    ggtitle("RNA")
 
-  p4 <- DimPlot(
+  p2 <- DimPlot(
     x,
     reduction = "adt.umap",
     label = TRUE,
     repel = TRUE,
     label.size = 2.5
-  ) + NoLegend()
+  ) + NoLegend() +
+    ggtitle("ADT")
 
-  top10 <- head(VariableFeatures(x), 10)
-  p1 <- VariableFeaturePlot(x)
-  p2 <- LabelPoints(
-    plot = p1,
-    points = top10,
-    repel = TRUE
-  )
+  p3 <- DimPlot(
+    x,
+    reduction = "wnn.umap",
+    label = TRUE,
+    repel = TRUE,
+    label.size = 2.5
+  ) + NoLegend() +
+    ggtitle("WNN")
 
   save_figure(
-    (p1 + p2),
-    paste0(samples$name[i], "_var_features"),
-    width = 12,
+    p1 + p2 + p3,
+    paste0(samples$name[i], "_clustered"),
+    width = 18,
     height = 6
   )
 
@@ -240,18 +236,19 @@ for (i in 1:nrow(samples)) {
     samples$name[i],
     x
   )
-}
 
-if (length(samples$name) == 1) {
-  save_object(x, "individual_clustered")
-} else { # integrate
-  # create and save list of seurat objects
-  objects <- list()
-  for (i in samples$name) {
-    objects <- c(
-      objects,
-      get(i) # need get() to call object instead of string
-    )
+
+  if (length(samples$name) == 1) {
+    save_object(x, "individual_clustered")
+  } else { # integrate
+    # create and save list of seurat objects
+    objects <- list()
+    for (i in samples$name) {
+      objects <- c(
+        objects,
+        get(i) # need get() to call object instead of string
+      )
+    }
   }
 
   save_object(objects, "individual_clustered")

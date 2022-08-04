@@ -29,6 +29,7 @@ do
         m) merge_combine=${OPTARG};;
         M) multimodal=${OPTARG};;
         a) atac=${OPTARG};;
+        c) cite=${OPTARG};;
     esac
 done
 
@@ -68,6 +69,12 @@ elif [[ "${atac:-}" == "TRUE" ]]
 then
     echo "Creating ATAC object"
     SCRIPTS=("preamble.R" "atac-multi-wnn.R")
+    echo "${SCRIPTS[@]}"
+    check_end=1
+elif [[ "${cite:-}" == "TRUE" ]]
+then
+    echo "Creating CITE object"
+    SCRIPTS=("preamble.R" "cite-wnn.R")
     echo "${SCRIPTS[@]}"
     check_end=1
 else
