@@ -19,7 +19,7 @@ declare -a SCRIPTS=(
 )
 
 # pass arguments from cli
-while getopts b:e:i:m:M:a: option
+while getopts b:e:i:m:M:a:c: option
 do
     case "${option}"
         in
