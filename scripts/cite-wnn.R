@@ -19,7 +19,6 @@ for (i in 1:nrow(samples)) {
   raw <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
   )
-  str_section_head("Raw Object") # logging
 
   rna <- raw$`Gene Expression`
   adt <- raw$`Antibody Capture`
