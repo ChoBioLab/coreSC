@@ -31,6 +31,7 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 # reference <- LoadH5Seuerat(params["clust.ref", ])
 
 for (i in 1:nrow(samples)) {
+  name <- samples$name[i]
   # the 10x hdf5 file contains both data types.
   x <- Read10X_h5(
     paste0(
@@ -101,7 +102,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_counts_vln")
+    paste0(name, "_counts_vln")
   )
 
   # compute nucleosome signal score per cell
@@ -130,7 +131,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_tss")
+    paste0(name, "_tss")
   )
 
   x$nucleosome_group <- ifelse(
@@ -146,7 +147,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_frag_histogram")
+    paste0(name, "_frag_histogram")
   )
 
   p1 <- VlnPlot(
@@ -163,7 +164,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_atac_vln")
+    paste0(name, "_atac_vln")
   )
 
   x <- subset(
@@ -241,7 +242,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_mapping_dim")
+    paste0(name, "_mapping_dim")
   )
 
   save_H5object(refquery, "refquery_object")
@@ -260,7 +261,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_depth")
+    paste0(name, "_depth")
   )
 
   x <- RunUMAP(
@@ -331,7 +332,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1 + p2 + p3,
-    paste0(samples$name[i], "_clustered"),
+    paste0(name, "_clustered"),
     width = 18,
     height = 6
   )
@@ -361,7 +362,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_coverage")
+    paste0(name, "_coverage")
   )
 
   # Get a list of motif position frequency matrices from the JASPAR database
@@ -401,11 +402,11 @@ for (i in 1:nrow(samples)) {
 
   warnings()
 
-  x@meta.data$object <- samples$name[i]
+  x@meta.data$object <- name
   x@meta.data$group <- samples$group[i]
 
   assign( # giving names to objects
-    samples$name[i],
+    name,
     x
   )
 }

@@ -56,7 +56,7 @@ str_section_head <- function(title) {
   message(strrep("=", 80))
   message(strrep("=", 80))
   message("")
-  message(paste(samples$name[i], title))
+  message(paste(name, title))
   message("")
   message(strrep("=", 80))
   message(strrep("=", 80))

@@ -14,13 +14,16 @@ out_path <- paste0(args[1], "/")
 objects <- list()
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
+print(samples)
 
 for (i in 1:nrow(samples)) {
   if (dir.exists(samples$dir[i])) {
+    name <- samples$name[i]
     x <- Read10X( # pulling data with no filter
       data.dir = samples$dir[i]
     )
     str_section_head("Raw Object") # logging
+    message("check 0")
 
     x <- CreateSeuratObject( # certain data will gen null matrix sans filters
       counts = x,
@@ -28,26 +31,43 @@ for (i in 1:nrow(samples)) {
       min.cells = params["min.cells", ],
       min.features = params["min.features", ]
     )
+    message("check 1")
 
+    print(samples$name[i])
     x@meta.data$object <- samples$name[i]
     x@meta.data$group <- samples$group[i]
+    print(unique(x$object))
+    message("check 2")
   } else {
     # TODO add compatibility with hdf5 format
 
     # it's assumed preformed objs have group and name metadata vars
     x <- readRDS(samples$dir[i])
+    x
+    message("check 3")
   }
 
+  message("check 4")
   objects <- c(objects, x)
+  print(objects)
+  message("check 5")
+  print(objects)
 }
 
-for (i in lenght(objects)) {
+length(objects)
+
+for (i in 1:length(objects)) {
   x <- objects[[i]]
+  message("check 6")
+  print(x)
+  name <- unique(x$object)
+  print(name)
 
   x[["percent.mt"]] <- PercentageFeatureSet(
     x,
     pattern = "(?i)^MT-"
   )
+  message("check 7")
 
   p1 <- VlnPlot(
     x,
@@ -61,10 +81,11 @@ for (i in lenght(objects)) {
 
   save_figure(
     p1,
-    paste0(unique(x[[i]]$object), "_unfilt_vln"),
+    paste0(name, "_unfilt_vln"),
     width = 12,
     height = 6
   )
+  message("check 8")
 
   p1 <- FeatureScatter(
     x,
@@ -80,10 +101,11 @@ for (i in lenght(objects)) {
 
   save_figure(
     (p1 + p2),
-    paste0(unique(x[[i]]$object), "_unfilt_scatter"),
+    paste0(name, "_unfilt_scatter"),
     width = 12,
     height = 6
   )
+  message("check 9")
 
   str_section_head("Base Seurat Object") # logging
 
@@ -96,6 +118,7 @@ for (i in lenght(objects)) {
       percent.mt < params["max.percent.mt", ] &
       percent.mt > params["min.percent.mt", ]
   )
+  message("check 10")
 
   # norm, dimred, and clustering
 
@@ -136,7 +159,7 @@ for (i in lenght(objects)) {
 
   save_figure(
     (p1 + p2),
-    paste0(unique(x[[i]]$object), "_var_features"),
+    paste0(name, "_var_features"),
     width = 12,
     height = 6
   )
@@ -155,7 +178,7 @@ for (i in lenght(objects)) {
 
   save_figure(
     (p1 + p2),
-    paste0(unique(x[[i]]$object), "individual_dimplot"),
+    paste0(name, "_individual_dimplot"),
     width = 12,
     height = 6
   )
