@@ -11,21 +11,38 @@ options(future.globals.maxSize = 2000 * 1024^2)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
+objects <- list()
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
 for (i in 1:nrow(samples)) {
-  x <- Read10X( # pulling data with no filter
-    data.dir = samples$dir[i]
-  )
-  str_section_head("Raw Object") # logging
+  if (dir.exists(samples$dir[i])) {
+    x <- Read10X( # pulling data with no filter
+      data.dir = samples$dir[i]
+    )
+    str_section_head("Raw Object") # logging
 
-  x <- CreateSeuratObject( # certain data will gen null matrix sans filters
-    counts = x,
-    project = samples$project[i],
-    min.cells = params["min.cells", ],
-    min.features = params["min.features", ]
-  )
+    x <- CreateSeuratObject( # certain data will gen null matrix sans filters
+      counts = x,
+      project = samples$project[i],
+      min.cells = params["min.cells", ],
+      min.features = params["min.features", ]
+    )
+
+    x@meta.data$object <- samples$name[i]
+    x@meta.data$group <- samples$group[i]
+  } else {
+    # TODO add compatibility with hdf5 format
+
+    # it's assumed preformed objs have group and name metadata vars
+    x <- readRDS(samples$dir[i])
+  }
+
+  objects <- c(objects, x)
+}
+
+for (i in lenght(objects)) {
+  x <- objects[[i]]
 
   x[["percent.mt"]] <- PercentageFeatureSet(
     x,
@@ -44,7 +61,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     p1,
-    paste0(samples$name[i], "_unfilt_vln"),
+    paste0(unique(x[[i]]$object), "_unfilt_vln"),
     width = 12,
     height = 6
   )
@@ -63,7 +80,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     (p1 + p2),
-    paste0(samples$name[i], "_unfilt_scatter"),
+    paste0(unique(x[[i]]$object), "_unfilt_scatter"),
     width = 12,
     height = 6
   )
@@ -119,13 +136,10 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     (p1 + p2),
-    paste0(samples$name[i], "_var_features"),
+    paste0(unique(x[[i]]$object), "_var_features"),
     width = 12,
     height = 6
   )
-
-  x@meta.data$object <- samples$name[i]
-  x@meta.data$group <- samples$group[i]
 
   p1 <- DimPlot(
     x,
@@ -141,30 +155,14 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     (p1 + p2),
-    paste0(samples$name[i], "individual_dimplot"),
+    paste0(unique(x[[i]]$object), "individual_dimplot"),
     width = 12,
     height = 6
   )
 
-  assign( # giving names to objects
-    samples$name[i],
-    x
-  )
+  objects[[i]] <- x
 }
 
-if (length(samples$name) == 1) {
-  save_object(x, "individual_clustered")
-} else { # integrate
-  # create and save list of seurat objects
-  objects <- list()
-  for (i in samples$name) {
-    objects <- c(
-      objects,
-      get(i) # need get() to call object instead of string
-    )
-  }
-
-  save_object(objects, "individual_clustered")
-}
+save_object(objects, "individual_clustered")
 
 print("End of create_object.R")

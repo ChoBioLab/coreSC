@@ -235,19 +235,18 @@ for (i in 1:nrow(samples)) {
     samples$name[i],
     x
   )
+}
 
-
-  if (length(samples$name) == 1) {
-    save_object(x, "individual_clustered")
-  } else { # integrate
-    # create and save list of seurat objects
-    objects <- list()
-    for (i in samples$name) {
-      objects <- c(
-        objects,
-        get(i) # need get() to call object instead of string
-      )
-    }
+if (length(samples$name) == 1) {
+  save_object(x, "individual_clustered")
+} else { # integrate
+  # create and save list of seurat objects
+  objects <- list()
+  for (i in samples$name) {
+    objects <- c(
+      objects,
+      get(i) # need get() to call object instead of string
+    )
   }
 
   save_object(objects, "individual_clustered")
