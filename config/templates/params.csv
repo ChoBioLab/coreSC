@@ -1,11 +1,17 @@
 var,value
 min.cells,3
-min.count,500
-max.count,60000
+min.count.rna,500
+max.count.rna,60000
+min.count.atac,1000
+max.count.atac,70000
 min.features,200
 max.features,2000
 max.percent.mt,30
 min.percent.mt,0
+pct.reads.peaks,20
+nucleosome,2
+tss.score,1
 dims,20
 res,0.6
+future.mem,2000
 

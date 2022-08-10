@@ -13,7 +13,7 @@ library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 plan(multicore) # parallelization
-options(future.globals.maxSize = 6000 * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
@@ -118,7 +118,7 @@ for (i in 1:nrow(samples)) {
   x$pct_reads_in_peaks <- x$atac_peak_region_fragments / x$atac_fragments * 100
   # x$blacklist_ratio <- x$blacklist_region_fragments / x$peak_region_fragments
   x$high.tss <- ifelse(
-    x$TSS.enrichment > 2,
+    x$TSS.enrichment > params["tss.score", ],
     "High",
     "Low"
   )
@@ -169,14 +169,14 @@ for (i in 1:nrow(samples)) {
 
   x <- subset(
     x = x,
-    subset = nCount_ATAC < 7e4 &
-      nCount_ATAC > 1e3 & # justified lowering from 5e3 to capture more cells
-      nCount_RNA < 25000 &
-      nCount_RNA > 1000 &
-      pct_reads_in_peaks > 20 &
-      nucleosome_signal < 2 &
-      TSS.enrichment > 1 &
-      percent.mt < 20
+    subset = nCount_ATAC < params["max.count.atac", ] &
+      nCount_ATAC > params["min.count.atac", ] &
+      nCount_RNA < params["max.count.rna", ] &
+      nCount_RNA > params["min.count.rna", ] &
+      pct_reads_in_peaks > params["pct.reads.peaks", ] &
+      nucleosome_signal < params["nucleosome", ] &
+      TSS.enrichment > params["tss.score", ] &
+      percent.mt < params["max.percent.mt", ]
   )
   str_section_head("Filtered")
 
