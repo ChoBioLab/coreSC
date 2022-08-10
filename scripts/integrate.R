@@ -17,7 +17,7 @@ objects <- read_object("individual_clustered")
 # run check for single sample
 if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
-  x <- objects
+  x <- objects[[1]]
 } else { # integrate
   features <- SelectIntegrationFeatures(
     object.list = objects
