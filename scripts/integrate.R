@@ -5,14 +5,14 @@ library(SeuratDisk)
 library(dplyr)
 library(future) # parallelization
 
-plan(multicore) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
-
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
 objects <- read_object("individual_clustered")
+
+plan(multicore) # parallelization
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 # run check for single sample
 if (length(samples$name) == 1) {
@@ -91,7 +91,7 @@ y <- FindAllMarkers(
   verbose = FALSE
 )
 
-save_h5(x, "clustered")
+save_h5(x, "integrated")
 save_object(y, "all_markers")
 
 print("End of integrated.R")

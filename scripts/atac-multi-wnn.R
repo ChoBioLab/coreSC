@@ -106,7 +106,7 @@ for (i in 1:nrow(samples)) {
 
   # add blacklist ratio and fraction of reads in peaks
   x$pct_reads_in_peaks <- x$atac_peak_region_fragments / x$atac_fragments * 100
-  x$blacklist_ratio <- x$blacklist_region_fragments / x$peak_region_fragments
+  # x$blacklist_ratio <- x$blacklist_region_fragments / x$peak_region_fragments
   x$high.tss <- ifelse(
     x$TSS.enrichment > params["tss.score", ],
     "High",
@@ -146,11 +146,10 @@ for (i in 1:nrow(samples)) {
       "pct_reads_in_peaks",
       "peak_region_fragments",
       "TSS.enrichment",
-      "blacklist_ratio",
       "nucleosome_signal"
     ),
     pt.size = 0.1,
-    ncol = 5
+    ncol = 4
   )
 
   save_figure(
@@ -167,8 +166,7 @@ for (i in 1:nrow(samples)) {
       pct_reads_in_peaks > params["pct.reads.peaks", ] &
       nucleosome_signal < params["nucleosome", ] &
       TSS.enrichment > params["tss.score", ] &
-      percent.mt < params["max.percent.mt", ] &
-      blacklist_ratio < 0.05
+      percent.mt < params["max.percent.mt", ]
   )
   str_section_head("Filtered")
 
@@ -278,9 +276,9 @@ for (i in 1:nrow(samples)) {
   x <- FindTopFeatures(
     x,
     min.cutoff = 5
-  )
-  x <- RunTFIDF(x)
-  x <- RunSVD(x)
+  ) %>%
+    RunTFIDF() %>%
+    RunSVD()
 
 
 
@@ -289,13 +287,11 @@ for (i in 1:nrow(samples)) {
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
   DefaultAssay(x) <- "ATAC"
-  x <- RunTFIDF(x)
-  x <- FindTopFeatures(
-    x,
-    min.cutoff = "q0"
-  )
-
-  x <- RunSVD(x)
+  x <- RunTFIDF(x) %>%
+    FindTopFeatures(
+      min.cutoff = "q0"
+    ) %>%
+    RunSVD()
 
   p1 <- DepthCor(x)
 
@@ -310,34 +306,28 @@ for (i in 1:nrow(samples)) {
     dims = 2:50,
     reduction.name = "umap.atac",
     reduction.key = "atacUMAP_"
-  )
-
-  x <- FindMultiModalNeighbors(
-    x,
-    reduction.list = list("pca", "lsi"),
-    dims.list = list(1:50, 2:50)
-  )
-
-  x <- RunUMAP(
-    x,
-    nn.name = "weighted.nn",
-    reduction.name = "wnn.umap",
-    reduction.key = "wnnUMAP_"
-  )
-
-  x <- FindClusters(
-    x,
-    graph.name = "wsnn",
-    algorithm = 3,
-    verbose = FALSE
-  )
+  ) %>%
+    FindMultiModalNeighbors(
+      reduction.list = list("pca", "lsi"),
+      dims.list = list(1:50, 2:50)
+    ) %>%
+    RunUMAP(
+      nn.name = "weighted.nn",
+      reduction.name = "wnn.umap",
+      reduction.key = "wnnUMAP_"
+    ) %>%
+    FindClusters(
+      graph.name = "wsnn",
+      algorithm = 3,
+      verbose = FALSE
+    )
 
   #  clust_idents <- na.omit(clusters[, i])
   #  names(clust_idents) <- levels(x)
   #  x <- RenameIdents(x, clust_idents)
   #  x$celltype <- Idents(x)
 
-  p1 <- DimPlot(
+  p1() <- DimPlot(
     x,
     reduction = "umap.rna",
     group.by = "celltype",
