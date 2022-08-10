@@ -5,14 +5,13 @@ library(SeuratDisk)
 library(dplyr)
 library(future) # parallelization
 
-plan(multicore) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
-
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
-
 load(paste0(out_path, "tmp/preamble_image.RData"))
 objects <- read_object("individual_clustered")
+
+plan(multicore) # parallelization
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 # run check for single sample
 if (length(samples$name) == 1) {

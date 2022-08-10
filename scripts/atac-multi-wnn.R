@@ -12,13 +12,12 @@ library(TFBSTools)
 library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
-plan(multicore) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
-
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
-
 load(paste0(out_path, "tmp/preamble_image.RData"))
+
+plan(multicore) # parallelization
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 # # load H5 reference for cluster mapping
 # download.file(
