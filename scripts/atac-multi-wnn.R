@@ -12,13 +12,12 @@ library(TFBSTools)
 library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 
-plan(multicore) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
-
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
-
 load(paste0(out_path, "tmp/preamble_image.RData"))
+
+plan(multicore) # parallelization
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 # # load H5 reference for cluster mapping
 # download.file(
@@ -116,7 +115,7 @@ for (i in 1:nrow(samples)) {
 
   # add blacklist ratio and fraction of reads in peaks
   x$pct_reads_in_peaks <- x$atac_peak_region_fragments / x$atac_fragments * 100
-  # x$blacklist_ratio <- x$blacklist_region_fragments / x$peak_region_fragments
+  x$blacklist_ratio <- x$blacklist_region_fragments / x$peak_region_fragments
   x$high.tss <- ifelse(
     x$TSS.enrichment > params["tss.score", ],
     "High",
@@ -156,6 +155,7 @@ for (i in 1:nrow(samples)) {
       "pct_reads_in_peaks",
       "peak_region_fragments",
       "TSS.enrichment",
+      "blacklist_ratio",
       "nucleosome_signal"
     ),
     pt.size = 0.1,
@@ -176,7 +176,8 @@ for (i in 1:nrow(samples)) {
       pct_reads_in_peaks > params["pct.reads.peaks", ] &
       nucleosome_signal < params["nucleosome", ] &
       TSS.enrichment > params["tss.score", ] &
-      percent.mt < params["max.percent.mt", ]
+      percent.mt < params["max.percent.mt", ] &
+      blacklist_ratio < 0.05
   )
   str_section_head("Filtered")
 
