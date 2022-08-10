@@ -50,30 +50,22 @@ for (i in 1:nrow(samples)) {
     row.names = 1
   )
 
-  # extract RNA and ATAC data
-  rna_counts <- x$`Gene Expression`
-  atac_counts <- x$Peaks
-
-  # Create Seurat object
+  # create Seurat object
   x <- CreateSeuratObject(
-    counts = rna_counts,
+    counts = x$`Gene Expression`,
     meta.data = metadata
   )
   str_section_head("Base Seurat Object")
 
   x[["percent.mt"]] <- PercentageFeatureSet(x, pattern = "^MT-")
 
-  # Now add in the ATAC-seq data
-  # we'll only use peaks in standard chromosomes
-  grange.counts <- StringToGRanges(rownames(atac_counts), sep = c(":", "-"))
-  grange.use <- seqnames(grange.counts) %in% standardChromosomes(grange.counts)
-  atac_counts <- atac_counts[as.vector(grange.use), ]
-  annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
-  seqlevelsStyle(annotations) <- "UCSC"
-  genome(annotations) <- "hg38"
+  # add in the ATAC-seq data
+  annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
+  seqlevelsStyle(annotation) <- "UCSC"
+  genome(annotation) <- "hg38"
 
-  chrom_assay <- CreateChromatinAssay(
-    counts = atac_counts,
+  x[["ATAC"]] <- CreateChromatinAssay(
+    counts = x$Peaks,
     sep = c(":", "-"),
     genome = "hg38",
     fragments = paste0(
@@ -81,10 +73,9 @@ for (i in 1:nrow(samples)) {
       "/atac_fragments.tsv.gz"
     ),
     min.cells = 10,
-    annotation = annotations
+    annotation = annotation
   )
 
-  x[["ATAC"]] <- chrom_assay
   DefaultAssay(x) <- "ATAC"
   str_section_head("with ATAC")
 
@@ -181,6 +172,38 @@ for (i in 1:nrow(samples)) {
   )
   str_section_head("Filtered")
 
+  # more accurate peak calling using MACS2
+  peaks <- CallPeaks(
+    x,
+    macs2.path = NULL
+  )
+
+  # remove peaks on nonstandard chromosomes and in genomic blacklist regions
+  peaks <- keepStandardChromosomes(
+    peaks,
+    pruning.mode = "coarse"
+  )
+
+  peaks <- subsetByOverlaps(
+    x = peaks,
+    ranges = blacklist_hg38_unified,
+    invert = TRUE
+  )
+
+  # quantify counts in each peak
+  macs2_counts <- FeatureMatrix(
+    fragments = Fragments(x),
+    features = peaks,
+    cells = colnames(x)
+  )
+
+  # create a new assay using the MACS2 peak set and add it to the Seurat object
+  x[["peaks"]] <- CreateChromatinAssay(
+    counts = macs2_counts,
+    fragments = fragpath,
+    annotation = annotation
+  )
+
   # RNA analysis
   DefaultAssay(x) <- "RNA"
   x <- SCTransform(
@@ -248,6 +271,21 @@ for (i in 1:nrow(samples)) {
 
   save_H5object(refquery, "refquery_object")
 
+
+
+
+  DefaultAssay(x) <- "peaks"
+  x <- FindTopFeatures(
+    x,
+    min.cutoff = 5
+  )
+  x <- RunTFIDF(x)
+  x <- RunSVD(x)
+
+
+
+
+
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
   DefaultAssay(x) <- "ATAC"
@@ -258,6 +296,7 @@ for (i in 1:nrow(samples)) {
   )
 
   x <- RunSVD(x)
+
   p1 <- DepthCor(x)
 
   save_figure(
@@ -338,33 +377,6 @@ for (i in 1:nrow(samples)) {
     height = 6
   )
   str_section_head("Clustered")
-
-  ## to make the visualization easier, subset T cell clusters
-  celltype.names <- levels(x)
-  tcell.names <- grep(
-    "CD4|CD8|Treg",
-    celltype.names,
-    value = TRUE
-  )
-
-  tcells <- subset(
-    x,
-    idents = tcell.names
-  )
-
-  p1 <- CoveragePlot(
-    tcells,
-    region = "CD8A",
-    features = "CD8A",
-    assay = "ATAC",
-    expression.assay = "SCT",
-    peaks = FALSE
-  )
-
-  save_figure(
-    p1,
-    paste0(name, "_coverage")
-  )
 
   # Get a list of motif position frequency matrices from the JASPAR database
   pwm_set <- getMatrixSet(
