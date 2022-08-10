@@ -8,7 +8,7 @@ library(ggplot2)
 library(future) # parallelization
 
 plan(multicore) # parallelization
-options(future.globals.maxSize = 2000 * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
