@@ -19,15 +19,15 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 plan(multicore) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
-# # load H5 reference for cluster mapping
-# download.file(
-#   url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
-#   destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
-#   method = "wget",
-#   quiet = TRUE
-# )
+# load H5 reference for cluster mapping
+download.file(
+  url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
+  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
+  method = "wget",
+  quiet = TRUE
+)
 
-# reference <- LoadH5Seuerat(params["clust.ref", ])
+reference <- LoadH5Seuerat(params["clust.ref", ])
 
 for (i in 1:nrow(samples)) {
   name <- samples$name[i]
@@ -269,9 +269,6 @@ for (i in 1:nrow(samples)) {
 
   save_H5object(refquery, "refquery_object")
 
-
-
-
   DefaultAssay(x) <- "peaks"
   x <- FindTopFeatures(
     x,
@@ -280,9 +277,10 @@ for (i in 1:nrow(samples)) {
     RunTFIDF() %>%
     RunSVD()
 
-
-
-
+  x <- RegionStats(
+                   x,
+                   genome = BSgenome.Hsapiens.UCSC.hg38
+                   )
 
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
@@ -405,6 +403,8 @@ for (i in 1:nrow(samples)) {
 
   warnings()
 
+  # finding co-accessible networks with Cicero
+
   x@meta.data$object <- name
   x@meta.data$group <- samples$group[i]
 
@@ -425,7 +425,6 @@ if (length(samples$name) == 1) {
       get(i) # need get() to call object instead of string
     )
   }
-  save_object(objects, "individual")
   save_H5object(objects, "individual")
 }
 
