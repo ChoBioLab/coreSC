@@ -90,7 +90,7 @@ y <- FindAllMarkers(
   verbose = FALSE
 )
 
-save_h5(x, "clustered")
+save_h5(x, "integrated")
 save_object(y, "all_markers")
 
 print("End of integrated.R")

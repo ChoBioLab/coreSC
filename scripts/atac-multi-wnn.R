@@ -19,15 +19,15 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 plan(multicore) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
-# # load H5 reference for cluster mapping
-# download.file(
-#   url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
-#   destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
-#   method = "wget",
-#   quiet = TRUE
-# )
+# load H5 reference for cluster mapping
+download.file(
+  url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
+  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
+  method = "wget",
+  quiet = TRUE
+)
 
-# reference <- LoadH5Seuerat(params["clust.ref", ])
+reference <- LoadH5Seuerat(params["clust.ref", ])
 
 for (i in 1:nrow(samples)) {
   name <- samples$name[i]
@@ -50,30 +50,22 @@ for (i in 1:nrow(samples)) {
     row.names = 1
   )
 
-  # extract RNA and ATAC data
-  rna_counts <- x$`Gene Expression`
-  atac_counts <- x$Peaks
-
-  # Create Seurat object
+  # create Seurat object
   x <- CreateSeuratObject(
-    counts = rna_counts,
+    counts = x$`Gene Expression`,
     meta.data = metadata
   )
   str_section_head("Base Seurat Object")
 
   x[["percent.mt"]] <- PercentageFeatureSet(x, pattern = "^MT-")
 
-  # Now add in the ATAC-seq data
-  # we'll only use peaks in standard chromosomes
-  grange.counts <- StringToGRanges(rownames(atac_counts), sep = c(":", "-"))
-  grange.use <- seqnames(grange.counts) %in% standardChromosomes(grange.counts)
-  atac_counts <- atac_counts[as.vector(grange.use), ]
-  annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
-  seqlevelsStyle(annotations) <- "UCSC"
-  genome(annotations) <- "hg38"
+  # add in the ATAC-seq data
+  annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
+  seqlevelsStyle(annotation) <- "UCSC"
+  genome(annotation) <- "hg38"
 
-  chrom_assay <- CreateChromatinAssay(
-    counts = atac_counts,
+  x[["ATAC"]] <- CreateChromatinAssay(
+    counts = x$Peaks,
     sep = c(":", "-"),
     genome = "hg38",
     fragments = paste0(
@@ -81,10 +73,9 @@ for (i in 1:nrow(samples)) {
       "/atac_fragments.tsv.gz"
     ),
     min.cells = 10,
-    annotation = annotations
+    annotation = annotation
   )
 
-  x[["ATAC"]] <- chrom_assay
   DefaultAssay(x) <- "ATAC"
   str_section_head("with ATAC")
 
@@ -158,7 +149,7 @@ for (i in 1:nrow(samples)) {
       "nucleosome_signal"
     ),
     pt.size = 0.1,
-    ncol = 5
+    ncol = 4
   )
 
   save_figure(
@@ -178,6 +169,38 @@ for (i in 1:nrow(samples)) {
       percent.mt < params["max.percent.mt", ]
   )
   str_section_head("Filtered")
+
+  # more accurate peak calling using MACS2
+  peaks <- CallPeaks(
+    x,
+    macs2.path = NULL
+  )
+
+  # remove peaks on nonstandard chromosomes and in genomic blacklist regions
+  peaks <- keepStandardChromosomes(
+    peaks,
+    pruning.mode = "coarse"
+  )
+
+  peaks <- subsetByOverlaps(
+    x = peaks,
+    ranges = blacklist_hg38_unified,
+    invert = TRUE
+  )
+
+  # quantify counts in each peak
+  macs2_counts <- FeatureMatrix(
+    fragments = Fragments(x),
+    features = peaks,
+    cells = colnames(x)
+  )
+
+  # create a new assay using the MACS2 peak set and add it to the Seurat object
+  x[["peaks"]] <- CreateChromatinAssay(
+    counts = macs2_counts,
+    fragments = fragpath,
+    annotation = annotation
+  )
 
   # RNA analysis
   DefaultAssay(x) <- "RNA"
@@ -246,16 +269,28 @@ for (i in 1:nrow(samples)) {
 
   save_H5object(refquery, "refquery_object")
 
+  DefaultAssay(x) <- "peaks"
+  x <- FindTopFeatures(
+    x,
+    min.cutoff = 5
+  ) %>%
+    RunTFIDF() %>%
+    RunSVD()
+
+  x <- RegionStats(
+                   x,
+                   genome = BSgenome.Hsapiens.UCSC.hg38
+                   )
+
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
   DefaultAssay(x) <- "ATAC"
-  x <- RunTFIDF(x)
-  x <- FindTopFeatures(
-    x,
-    min.cutoff = "q0"
-  )
+  x <- RunTFIDF(x) %>%
+    FindTopFeatures(
+      min.cutoff = "q0"
+    ) %>%
+    RunSVD()
 
-  x <- RunSVD(x)
   p1 <- DepthCor(x)
 
   save_figure(
@@ -269,27 +304,21 @@ for (i in 1:nrow(samples)) {
     dims = 2:50,
     reduction.name = "umap.atac",
     reduction.key = "atacUMAP_"
-  )
-
-  x <- FindMultiModalNeighbors(
-    x,
-    reduction.list = list("pca", "lsi"),
-    dims.list = list(1:50, 2:50)
-  )
-
-  x <- RunUMAP(
-    x,
-    nn.name = "weighted.nn",
-    reduction.name = "wnn.umap",
-    reduction.key = "wnnUMAP_"
-  )
-
-  x <- FindClusters(
-    x,
-    graph.name = "wsnn",
-    algorithm = 3,
-    verbose = FALSE
-  )
+  ) %>%
+    FindMultiModalNeighbors(
+      reduction.list = list("pca", "lsi"),
+      dims.list = list(1:50, 2:50)
+    ) %>%
+    RunUMAP(
+      nn.name = "weighted.nn",
+      reduction.name = "wnn.umap",
+      reduction.key = "wnnUMAP_"
+    ) %>%
+    FindClusters(
+      graph.name = "wsnn",
+      algorithm = 3,
+      verbose = FALSE
+    )
 
   #  clust_idents <- na.omit(clusters[, i])
   #  names(clust_idents) <- levels(x)
@@ -337,33 +366,6 @@ for (i in 1:nrow(samples)) {
   )
   str_section_head("Clustered")
 
-  ## to make the visualization easier, subset T cell clusters
-  celltype.names <- levels(x)
-  tcell.names <- grep(
-    "CD4|CD8|Treg",
-    celltype.names,
-    value = TRUE
-  )
-
-  tcells <- subset(
-    x,
-    idents = tcell.names
-  )
-
-  p1 <- CoveragePlot(
-    tcells,
-    region = "CD8A",
-    features = "CD8A",
-    assay = "ATAC",
-    expression.assay = "SCT",
-    peaks = FALSE
-  )
-
-  save_figure(
-    p1,
-    paste0(name, "_coverage")
-  )
-
   # Get a list of motif position frequency matrices from the JASPAR database
   pwm_set <- getMatrixSet(
     x = JASPAR2020,
@@ -401,6 +403,8 @@ for (i in 1:nrow(samples)) {
 
   warnings()
 
+  # finding co-accessible networks with Cicero
+
   x@meta.data$object <- name
   x@meta.data$group <- samples$group[i]
 
@@ -421,7 +425,6 @@ if (length(samples$name) == 1) {
       get(i) # need get() to call object instead of string
     )
   }
-  save_object(objects, "individual")
   save_H5object(objects, "individual")
 }
 
