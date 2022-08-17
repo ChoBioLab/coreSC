@@ -27,7 +27,12 @@ download.file(
   quiet = TRUE
 )
 
-reference <- LoadH5Seuerat(params["clust.ref", ])
+reference <- LoadH5Seurat(
+  paste0(
+    out_path,
+    "tmp/pbmc_multimodal.h5seurat"
+  )
+)
 
 for (i in 1:nrow(samples)) {
   name <- samples$name[i]
@@ -50,6 +55,10 @@ for (i in 1:nrow(samples)) {
     row.names = 1
   )
 
+  # extract RNA and ATAC data
+  rna_counts <- x$`Gene Expression`
+  cellranger_peaks <- x$Peaks
+
   # create Seurat object
   x <- CreateSeuratObject(
     counts = x$`Gene Expression`,
@@ -60,12 +69,18 @@ for (i in 1:nrow(samples)) {
   x[["percent.mt"]] <- PercentageFeatureSet(x, pattern = "^MT-")
 
   # add in the ATAC-seq data
+  grange.counts <- StringToGRanges(
+    rownames(cellranger_peaks),
+    sep = c(":", "-")
+  )
+  grange.use <- seqnames(grange.counts) %in% standardChromosomes(grange.counts)
+  cellranger_peaks <- cellranger_peaks[as.vector(grange.use), ]
   annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
   seqlevelsStyle(annotation) <- "UCSC"
   genome(annotation) <- "hg38"
 
   x[["ATAC"]] <- CreateChromatinAssay(
-    counts = x$Peaks,
+    counts = cellranger_peaks,
     sep = c(":", "-"),
     genome = "hg38",
     fragments = paste0(
@@ -94,6 +109,43 @@ for (i in 1:nrow(samples)) {
     p1,
     paste0(name, "_counts_vln")
   )
+
+  # more accurate peak calling using MACS2
+  peaks <- CallPeaks(
+    x,
+    macs2.path = "/home/cho_lab/chris/miniconda3/envs/signac/bin/macs2"
+  )
+
+  # remove peaks on nonstandard chromosomes and in genomic blacklist regions
+  peaks <- keepStandardChromosomes(
+    peaks,
+    pruning.mode = "coarse"
+  )
+
+  peaks <- subsetByOverlaps(
+    x = peaks,
+    ranges = blacklist_hg38_unified,
+    invert = TRUE
+  )
+
+  # quantify counts in each peak
+  macs2_counts <- FeatureMatrix(
+    fragments = Fragments(x),
+    features = peaks,
+    cells = colnames(x)
+  )
+
+  # create a new assay using the MACS2 peak set and add it to the Seurat object
+  x[["peaks"]] <- CreateChromatinAssay(
+    counts = macs2_counts,
+    fragments = paste0(
+      samples$dir[i],
+      "/atac_fragments.tsv.gz"
+    ),
+    annotation = annotation
+  )
+
+  DefaultAssay(x) <- "peaks"
 
   # compute nucleosome signal score per cell
   x <- NucleosomeSignal(object = x)
@@ -144,12 +196,11 @@ for (i in 1:nrow(samples)) {
     object = x,
     features = c(
       "pct_reads_in_peaks",
-      "peak_region_fragments",
       "TSS.enrichment",
       "nucleosome_signal"
     ),
     pt.size = 0.1,
-    ncol = 4
+    ncol = 3
   )
 
   save_figure(
@@ -170,44 +221,11 @@ for (i in 1:nrow(samples)) {
   )
   str_section_head("Filtered")
 
-  # more accurate peak calling using MACS2
-  peaks <- CallPeaks(
-    x,
-    macs2.path = NULL
-  )
-
-  # remove peaks on nonstandard chromosomes and in genomic blacklist regions
-  peaks <- keepStandardChromosomes(
-    peaks,
-    pruning.mode = "coarse"
-  )
-
-  peaks <- subsetByOverlaps(
-    x = peaks,
-    ranges = blacklist_hg38_unified,
-    invert = TRUE
-  )
-
-  # quantify counts in each peak
-  macs2_counts <- FeatureMatrix(
-    fragments = Fragments(x),
-    features = peaks,
-    cells = colnames(x)
-  )
-
-  # create a new assay using the MACS2 peak set and add it to the Seurat object
-  x[["peaks"]] <- CreateChromatinAssay(
-    counts = macs2_counts,
-    fragments = fragpath,
-    annotation = annotation
-  )
-
   # RNA analysis
   DefaultAssay(x) <- "RNA"
   x <- SCTransform(
     x,
     method = "glmGamPoi",
-    verbose = FALSE
   ) %>%
     RunPCA() %>%
     RunUMAP(
@@ -230,7 +248,7 @@ for (i in 1:nrow(samples)) {
     query = x,
     reference = reference,
     refdata = list(
-      celltype = "celltype"
+      celltype = "celltype.l2"
     ),
     reference.reduction = "spca",
     reduction.model = "wnn.umap"
@@ -267,35 +285,25 @@ for (i in 1:nrow(samples)) {
     paste0(name, "_mapping_dim")
   )
 
-  save_H5object(refquery, "refquery_object")
-
-  DefaultAssay(x) <- "peaks"
-  x <- FindTopFeatures(
-    x,
-    min.cutoff = 5
-  ) %>%
-    RunTFIDF() %>%
-    RunSVD()
-
-  x <- RegionStats(
-                   x,
-                   genome = BSgenome.Hsapiens.UCSC.hg38
-                   )
-
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
-  DefaultAssay(x) <- "ATAC"
+  DefaultAssay(x) <- "peaks"
   x <- RunTFIDF(x) %>%
     FindTopFeatures(
       min.cutoff = "q0"
     ) %>%
     RunSVD()
 
+  x <- RegionStats(
+    x,
+    genome = BSgenome.Hsapiens.UCSC.hg38
+  )
+
   p1 <- DepthCor(x)
 
   save_figure(
     p1,
-    paste0(name, "_depth")
+    paste0(name, "_macs2_depth")
   )
 
   x <- RunUMAP(
@@ -317,7 +325,6 @@ for (i in 1:nrow(samples)) {
     FindClusters(
       graph.name = "wsnn",
       algorithm = 3,
-      verbose = FALSE
     )
 
   #  clust_idents <- na.omit(clusters[, i])
@@ -325,10 +332,10 @@ for (i in 1:nrow(samples)) {
   #  x <- RenameIdents(x, clust_idents)
   #  x$celltype <- Idents(x)
 
-  p1() <- DimPlot(
+  p1 <- DimPlot(
     x,
     reduction = "umap.rna",
-    group.by = "celltype",
+    group.by = "predicted.celltype",
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
@@ -339,7 +346,7 @@ for (i in 1:nrow(samples)) {
   p2 <- DimPlot(
     x,
     reduction = "umap.atac",
-    group.by = "celltype",
+    group.by = "predicted.celltype",
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
@@ -350,7 +357,7 @@ for (i in 1:nrow(samples)) {
   p3 <- DimPlot(
     x,
     reduction = "wnn.umap",
-    group.by = "celltype",
+    group.by = "predicted.celltype",
     label = TRUE,
     label.size = 2.5,
     repel = TRUE
@@ -389,7 +396,7 @@ for (i in 1:nrow(samples)) {
 
   x <- SetAssayData(
     x,
-    assay = "ATAC",
+    assay = "peaks",
     slot = "motifs",
     new.data = motif.object
   )
@@ -425,7 +432,7 @@ if (length(samples$name) == 1) {
       get(i) # need get() to call object instead of string
     )
   }
-  save_H5object(objects, "individual")
+  save_object(objects, "individual")
 }
 
 ## integration
