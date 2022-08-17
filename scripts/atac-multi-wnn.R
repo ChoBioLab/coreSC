@@ -34,6 +34,34 @@ reference <- LoadH5Seurat(
   )
 )
 
+reference <- FindNeighbors(
+  object = reference,
+  reduction = "spca",
+  dims = 1:50,
+  graph.name = "spca.annoy.neighbors",
+  k.param = 50,
+  cache.index = TRUE,
+  return.neighbor = TRUE
+)
+
+SaveAnnoyIndex(
+  object = reference[["spca.annoy.neighbors"]],
+  file = paste0(
+    out_path,
+    "tmp/preamble_image.RData"
+  )
+)
+
+reference[["spca.annoy.neighbors"]] <- LoadAnnoyIndex(
+  object = reference[["spca.annoy.neighbors"]],
+  file = paste0(
+    out_path,
+    "tmp/preamble_image.RData"
+  )
+)
+
+anchors <- list()
+
 for (i in 1:nrow(samples)) {
   name <- samples$name[i]
   # the 10x hdf5 file contains both data types.
@@ -235,20 +263,23 @@ for (i in 1:nrow(samples)) {
     )
 
   # determine anchors between reference and query for mapping
-  anchors <- FindTransferAnchors(
+  anchors[[i]] <- FindTransferAnchors(
     reference = reference,
     query = x,
+    k.filter = NA,
     normalization.method = "SCT",
     reference.reduction = "spca",
+    reference.neighbors = "spca.annoy.neighbors",
     dims = 1:50
   )
 
   x <- MapQuery(
-    anchorset = anchors,
+    anchorset = anchors[[i]],
     query = x,
     reference = reference,
     refdata = list(
-      celltype = "celltype.l2"
+      celltype = "celltype.l2",
+      predicted_ADT = "ADT"
     ),
     reference.reduction = "spca",
     reduction.model = "wnn.umap"
