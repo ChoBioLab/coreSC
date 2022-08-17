@@ -7,13 +7,16 @@ library(patchwork)
 library(ggplot2)
 library(future) # parallelization
 
-plan(multicore) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
-
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
 
 load(paste0(out_path, "tmp/preamble_image.RData"))
+
+plan(
+  multicore,
+  workers = params["future.workers", ]
+) # parallelization
+options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 for (i in 1:nrow(samples)) {
   raw <- Read10X( # pulling data with no filter
