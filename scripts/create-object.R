@@ -11,9 +11,11 @@ out_path <- paste0(args[1], "/")
 objects <- list()
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
-plan(multicore) # parallelization
+plan(
+  multicore,
+  workers = params["future,workers", ]
+) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
-
 
 for (i in 1:nrow(samples)) {
   if (dir.exists(samples$dir[i])) {

@@ -10,7 +10,10 @@ out_path <- paste0(args[1], "/")
 load(paste0(out_path, "tmp/preamble_image.RData"))
 objects <- read_object("individual_clustered")
 
-plan(multicore) # parallelization
+plan(
+  multicore,
+  workers = params["future.workers", ]
+) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 # run check for single sample
