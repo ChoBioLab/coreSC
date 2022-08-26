@@ -37,6 +37,17 @@ reference <- LoadH5Seurat(
   )
 )
 
+reference <- ScaleData(
+  reference,
+  assay = "SCT"
+)
+
+reference <- RunSPCA(
+  reference,
+  assay = "SCT",
+  graph = "wsnn"
+)
+
 reference <- FindNeighbors(
   object = reference,
   reduction = "spca",
@@ -44,7 +55,8 @@ reference <- FindNeighbors(
   graph.name = "spca.annoy.neighbors",
   k.param = 50,
   cache.index = TRUE,
-  return.neighbor = TRUE
+  return.neighbor = TRUE,
+  l2.norm = TRUE
 )
 
 SaveAnnoyIndex(
@@ -269,7 +281,6 @@ for (i in 1:nrow(samples)) {
   anchors[[i]] <- FindTransferAnchors(
     reference = reference,
     query = x,
-    k.filter = NA,
     normalization.method = "SCT",
     reference.reduction = "spca",
     reference.neighbors = "spca.annoy.neighbors",
