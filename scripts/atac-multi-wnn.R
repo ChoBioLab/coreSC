@@ -11,6 +11,7 @@ library(JASPAR2020)
 library(TFBSTools)
 library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
+library(harmony)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
@@ -480,46 +481,59 @@ if (length(samples$name) == 1) {
   save_object(objects, "individual")
 }
 
-## integration
-## https://satijalab.org/signac/articles/integrate_atac.html
-# combined <- Reduce(merge, objects)
-#
-# combined <- FindTopFeatures(
-#  combined,
-#  min.cutoff = 10
-# ) %>%
-#  RunTFIDF() %>%
-#  RunSVD() %>%
-#  RunUMAP(
-#    .,
-#    reduction = "lsi",
-#    dims = 2:30
-#  )
-#
-# anchors <- FindIntegrationAnchors(
-#  object.list = objects,
-#  anchor.features = rownames(objects[1]),
-#  reduction = "rlsi",
-#  dims = 2:30
-# )
-#
-## integrate LSI embeddings
-# integrated <- IntegrateEmbeddings(
-#  anchorset = anchors,
-#  reductions = combined[["lsi"]],
-#  new.reduction.name = "integrated_lsi",
-#  dims.to.integrate = 1:30
-# )
-#
-## create a new UMAP using the integrated embeddings
-# integrated <- RunUMAP(
-#  integrated,
-#  reduction = "integrated_lsi",
-#  dims = 2:30
-# )
-#
-# save_object(integrated, "integrated")
-# save_H5object(integrated, "integrated")
-#
+# integration
+# https://satijalab.org/signac/1.2.0/articles/integration.html
+combined <- Reduce(merge, objects)
+
+DefaultAssay(combined) <- "peaks"
+
+combined <- RunTFIDF(
+  combined
+) %>%
+  FindTopFeatures(
+    min.cutoff = 50
+  ) %>%
+  RunSVD() %>%
+  RunUMAP(
+    reduction = "lsi",
+    dims = 2:30
+  )
+
+p1 <- DimPlot(
+  combined,
+  group.by = "object",
+  pt.size = 0.1
+)
+
+save_figure(
+  p1,
+  "combined_dimplot"
+)
+
+integrated <- RunHarmony(
+  object = combined,
+  group.by.vars = "object",
+  reduction = "lsi",
+  assay.use = "peaks",
+  project.dim = FALSE
+) %>%
+  RunUMAP(
+    dims = 2:30,
+    reduction = "harmony"
+  )
+
+p5 <- DimPlot(
+  integrated,
+  reduction = "harmony"
+)
+
+save_figure(
+  p1,
+  "integrated_dimplot"
+)
+
+save_H5object(combined, "integrated")
+save_H5object(integrated, "integrated")
+
 
 sessionInfo()
