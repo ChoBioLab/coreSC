@@ -23,60 +23,60 @@ plan(
 ) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
-# load H5 reference for cluster mapping
-download.file(
-  url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
-  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
-  method = "wget",
-  quiet = TRUE
-)
-
-reference <- LoadH5Seurat(
-  paste0(
-    out_path,
-    "tmp/pbmc_multimodal.h5seurat"
-  )
-)
-
-reference <- ScaleData(
-  reference,
-  assay = "SCT"
-)
-
-reference <- RunSPCA(
-  reference,
-  assay = "SCT",
-  graph = "wsnn"
-)
-
-reference <- FindNeighbors(
-  object = reference,
-  reduction = "spca",
-  dims = 1:50,
-  graph.name = "spca.annoy.neighbors",
-  k.param = 50,
-  cache.index = TRUE,
-  return.neighbor = TRUE,
-  l2.norm = TRUE
-)
-
-SaveAnnoyIndex(
-  object = reference[["spca.annoy.neighbors"]],
-  file = paste0(
-    out_path,
-    "tmp/preamble_image.RData"
-  )
-)
-
-reference[["spca.annoy.neighbors"]] <- LoadAnnoyIndex(
-  object = reference[["spca.annoy.neighbors"]],
-  file = paste0(
-    out_path,
-    "tmp/preamble_image.RData"
-  )
-)
-
-anchors <- list()
+## load H5 reference for cluster mapping
+#download.file(
+#  url = "https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat",
+#  destfile = paste0(out_path, "tmp/pbmc_multimodal.h5seurat"),
+#  method = "wget",
+#  quiet = TRUE
+#)
+#
+#reference <- LoadH5Seurat(
+#  paste0(
+#    out_path,
+#    "tmp/pbmc_multimodal.h5seurat"
+#  )
+#)
+#
+#reference <- ScaleData(
+#  reference,
+#  assay = "SCT"
+#)
+#
+#reference <- RunSPCA(
+#  reference,
+#  assay = "SCT",
+#  graph = "wsnn"
+#)
+#
+#reference <- FindNeighbors(
+#  object = reference,
+#  reduction = "spca",
+#  dims = 1:50,
+#  graph.name = "spca.annoy.neighbors",
+#  k.param = 50,
+#  cache.index = TRUE,
+#  return.neighbor = TRUE,
+#  l2.norm = TRUE
+#)
+#
+#SaveAnnoyIndex(
+#  object = reference[["spca.annoy.neighbors"]],
+#  file = paste0(
+#    out_path,
+#    "tmp/preamble_image.RData"
+#  )
+#)
+#
+#reference[["spca.annoy.neighbors"]] <- LoadAnnoyIndex(
+#  object = reference[["spca.annoy.neighbors"]],
+#  file = paste0(
+#    out_path,
+#    "tmp/preamble_image.RData"
+#  )
+#)
+#
+#anchors <- list()
 
 for (i in 1:nrow(samples)) {
   name <- samples$name[i]
@@ -278,58 +278,58 @@ for (i in 1:nrow(samples)) {
       reduction.key = "rnaUMAP_"
     )
 
-  # determine anchors between reference and query for mapping
-  anchors[[i]] <- FindTransferAnchors(
-    reference = reference,
-    query = x,
-    normalization.method = "SCT",
-    reference.reduction = "spca",
-    reference.neighbors = "spca.annoy.neighbors",
-    dims = 1:50
-  )
-
-  x <- MapQuery(
-    anchorset = anchors[[i]],
-    query = x,
-    reference = reference,
-    refdata = list(
-      celltype = "celltype.l2",
-      predicted_ADT = "ADT"
-    ),
-    reference.reduction = "spca",
-    reduction.model = "wnn.umap"
-  )
-  str_section_head("WNN Mapped")
-
-  # merge reference and query
-  reference$id <- "reference"
-  x$id <- "query"
-  refquery <- merge(
-    reference,
-    x
-  )
-
-  refquery[["spca"]] <- merge(
-    reference[["spca"]],
-    x[["ref.spca"]]
-  )
-
-  refquery <- RunUMAP(
-    refquery,
-    reduction = "spca",
-    dims = 1:50
-  )
-
-  p1 <- DimPlot(
-    refquery,
-    group.by = "id",
-    shuffle = TRUE
-  )
-
-  save_figure(
-    p1,
-    paste0(name, "_mapping_dim")
-  )
+#  # determine anchors between reference and query for mapping
+#  anchors[[i]] <- FindTransferAnchors(
+#    reference = reference,
+#    query = x,
+#    normalization.method = "SCT",
+#    reference.reduction = "spca",
+#    reference.neighbors = "spca.annoy.neighbors",
+#    dims = 1:50
+#  )
+#
+#  x <- MapQuery(
+#    anchorset = anchors[[i]],
+#    query = x,
+#    reference = reference,
+#    refdata = list(
+#      celltype = "celltype.l2",
+#      predicted_ADT = "ADT"
+#    ),
+#    reference.reduction = "spca",
+#    reduction.model = "wnn.umap"
+#  )
+#  str_section_head("WNN Mapped")
+#
+#  # merge reference and query
+#  reference$id <- "reference"
+#  x$id <- "query"
+#  refquery <- merge(
+#    reference,
+#    x
+#  )
+#
+#  refquery[["spca"]] <- merge(
+#    reference[["spca"]],
+#    x[["ref.spca"]]
+#  )
+#
+#  refquery <- RunUMAP(
+#    refquery,
+#    reduction = "spca",
+#    dims = 1:50
+#  )
+#
+#  p1 <- DimPlot(
+#    refquery,
+#    group.by = "id",
+#    shuffle = TRUE
+#  )
+#
+#  save_figure(
+#    p1,
+#    paste0(name, "_mapping_dim")
+#  )
 
   # ATAC analysis
   # We exclude the first dimension as this is typically correlated with sequencing depth
@@ -378,45 +378,45 @@ for (i in 1:nrow(samples)) {
   #  x <- RenameIdents(x, clust_idents)
   #  x$celltype <- Idents(x)
 
-  p1 <- DimPlot(
-    x,
-    reduction = "umap.rna",
-    group.by = "predicted.celltype",
-    label = TRUE,
-    label.size = 2.5,
-    repel = TRUE
-  ) +
-    ggtitle("RNA") +
-    NoLegend()
-
-  p2 <- DimPlot(
-    x,
-    reduction = "umap.atac",
-    group.by = "predicted.celltype",
-    label = TRUE,
-    label.size = 2.5,
-    repel = TRUE
-  ) +
-    ggtitle("ATAC") +
-    NoLegend()
-
-  p3 <- DimPlot(
-    x,
-    reduction = "wnn.umap",
-    group.by = "predicted.celltype",
-    label = TRUE,
-    label.size = 2.5,
-    repel = TRUE
-  ) +
-    ggtitle("WNN") +
-    NoLegend()
-
-  save_figure(
-    p1 + p2 + p3,
-    paste0(name, "_clustered"),
-    width = 18,
-    height = 6
-  )
+#  p1 <- DimPlot(
+#    x,
+#    reduction = "umap.rna",
+#    group.by = "predicted.celltype",
+#    label = TRUE,
+#    label.size = 2.5,
+#    repel = TRUE
+#  ) +
+#    ggtitle("RNA") +
+#    NoLegend()
+#
+#  p2 <- DimPlot(
+#    x,
+#    reduction = "umap.atac",
+#    group.by = "predicted.celltype",
+#    label = TRUE,
+#    label.size = 2.5,
+#    repel = TRUE
+#  ) +
+#    ggtitle("ATAC") +
+#    NoLegend()
+#
+#  p3 <- DimPlot(
+#    x,
+#    reduction = "wnn.umap",
+#    group.by = "predicted.celltype",
+#    label = TRUE,
+#    label.size = 2.5,
+#    repel = TRUE
+#  ) +
+#    ggtitle("WNN") +
+#    NoLegend()
+#
+#  save_figure(
+#    p1 + p2 + p3,
+#    paste0(name, "_clustered"),
+#    width = 18,
+#    height = 6
+#  )
   str_section_head("Clustered")
 
   # Get a list of motif position frequency matrices from the JASPAR database
