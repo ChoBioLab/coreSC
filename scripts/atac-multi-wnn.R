@@ -532,8 +532,9 @@ save_figure(
   "integrated_dimplot"
 )
 
-save_H5object(combined, "integrated")
-save_H5object(integrated, "integrated")
+save_h5(combined, "combined")
+save_h5(integrated, "integrated")
 
 
 sessionInfo()
+
