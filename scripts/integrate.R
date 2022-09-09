@@ -4,6 +4,7 @@ library(Seurat)
 library(SeuratDisk)
 library(dplyr)
 library(future) # parallelization
+library(limma)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
@@ -94,7 +95,7 @@ y <- FindAllMarkers(
 )
 
 save_h5(x, "integrated")
-save_object(y, "all_markers")
+write.csv(y, "all_markers.csv")
 
 print("End of integrated.R")
 

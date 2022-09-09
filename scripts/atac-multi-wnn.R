@@ -12,6 +12,7 @@ library(TFBSTools)
 library(motifmatchr)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(harmony)
+library(limma)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
@@ -532,9 +533,19 @@ save_figure(
   "integrated_dimplot"
 )
 
+DefaultAssay(integrated) <- "SCT"
+
+integrated <- PrepSCTFindMarkers(integrated)
+
+markers <- FindAllMarkers(
+  integrated,
+  assay = "SCT",
+  verbose = FALSE
+)
+
 save_h5(combined, "combined")
 save_h5(integrated, "integrated")
-
+write.csv(markers, "all_markers.csv")
 
 sessionInfo()
 

@@ -254,6 +254,8 @@ if (length(samples$name) == 1) {
   save_object(objects, "individual_clustered")
 }
 
+# TODO setup findallmarkers
+
 sessionInfo()
 
 print("End of cite-wnn.R")
