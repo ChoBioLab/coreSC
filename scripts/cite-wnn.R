@@ -254,8 +254,83 @@ if (length(samples$name) == 1) {
   save_object(objects, "individual_clustered")
 }
 
+
+
+
+
 # TODO setup findallmarkers
+# integration
+# https://satijalab.org/signac/1.2.0/articles/integration.html
+# https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
+combined <- Reduce(merge, objects)
+
+DefaultAssay(x) <- "ADT"
+combined <- NormalizeData(
+  combined,
+  normalization.method = "CLR",
+  margin = 2
+) %>%
+  ScaleData() %>%
+  RunPCA(reduction.name = "apca")
+
+# DefaultAssay(x) <- "RNA"
+# x <- SCTransform(
+#   x,
+#   vst.flavor = "v2",
+#   verbose = FALSE
+# ) %>%
+#   RunPCA(
+#     npcs = d,
+#     verbose = FALSE
+#   )
+
+p1 <- DimPlot(
+  combined,
+  group.by = "object",
+  pt.size = 0.1
+)
+
+save_figure(
+  p1,
+  "combined_dimplot"
+)
+
+integrated <- RunHarmony(
+  object = combined,
+  group.by.vars = "object",
+  reduction = "apca",
+  assay.use = "ADT",
+  project.dim = FALSE
+) %>%
+  RunUMAP(
+    dims = 2:30,
+    reduction = "harmony"
+  )
+
+p1 <- DimPlot(
+  integrated,
+  reduction = "harmony"
+)
+
+save_figure(
+  p1,
+  "integrated_dimplot"
+)
+
+DefaultAssay(integrated) <- "SCT"
+integrated <- PrepSCTFindMarkers(integrated)
+
+markers <- FindAllMarkers(
+  integrated,
+  assay = "SCT",
+  verbose = FALSE
+)
+
+save_h5(combined, "combined")
+save_h5(integrated, "integrated")
+write.csv(markers, "all_markers.csv")
 
 sessionInfo()
 
 print("End of cite-wnn.R")
+

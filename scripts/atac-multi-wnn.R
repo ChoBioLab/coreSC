@@ -270,7 +270,8 @@ for (i in 1:nrow(samples)) {
   DefaultAssay(x) <- "RNA"
   x <- SCTransform(
     x,
-    method = "glmGamPoi",
+    vst.flavor = "v2",
+    verbose = FALSE
   ) %>%
     RunPCA() %>%
     RunUMAP(
@@ -484,21 +485,34 @@ if (length(samples$name) == 1) {
 
 # integration
 # https://satijalab.org/signac/1.2.0/articles/integration.html
+# https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
 combined <- Reduce(merge, objects)
 
 DefaultAssay(combined) <- "peaks"
-
 combined <- RunTFIDF(
   combined
 ) %>%
   FindTopFeatures(
-    min.cutoff = 50
+    min.cutoff = "q0"
   ) %>%
   RunSVD() %>%
   RunUMAP(
     reduction = "lsi",
     dims = 2:30
   )
+
+#  DefaultAssay(x) <- "SCT"
+#  x <- SCTransform(
+#    x,
+#    vst.flavor = "v2",
+#    verbose = FALSE
+#  ) %>%
+#    RunPCA() %>%
+#    RunUMAP(
+#      dims = 1:50,
+#      reduction.name = "umap.rna",
+#      reduction.key = "rnaUMAP_"
+#    )
 
 p1 <- DimPlot(
   combined,
@@ -523,7 +537,7 @@ integrated <- RunHarmony(
     reduction = "harmony"
   )
 
-p5 <- DimPlot(
+p1 <- DimPlot(
   integrated,
   reduction = "harmony"
 )
@@ -548,4 +562,6 @@ save_h5(integrated, "integrated")
 write.csv(markers, "all_markers.csv")
 
 sessionInfo()
+
+print("End of atac-multi.wnn.R")
 
