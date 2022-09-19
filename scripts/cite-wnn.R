@@ -265,8 +265,8 @@ if (length(samples$name) == 1) {
 # https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
 combined <- Reduce(merge, objects)
 
-DefaultAssay(x) <- "ADT"
-VariableFeatures(x) <- rownames(x[["ADT"]])
+DefaultAssay(combined) <- "ADT"
+VariableFeatures(combined) <- rownames(combined[["ADT"]])
 combined <- NormalizeData(
   combined,
   normalization.method = "CLR",
