@@ -18,6 +18,7 @@ plan(
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
 for (i in 1:nrow(samples)) {
+  name <- samples$name[i]
   raw <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
   )
@@ -265,6 +266,7 @@ if (length(samples$name) == 1) {
 combined <- Reduce(merge, objects)
 
 DefaultAssay(x) <- "ADT"
+VariableFeatures(x) <- rownames(x[["ADT"]])
 combined <- NormalizeData(
   combined,
   normalization.method = "CLR",
@@ -333,4 +335,3 @@ write.csv(markers, "all_markers.csv")
 sessionInfo()
 
 print("End of cite-wnn.R")
-

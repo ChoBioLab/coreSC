@@ -2003,6 +2003,17 @@
         "rlang"
       ]
     },
+    "limma": {
+      "Package": "limma",
+      "Version": "3.52.3",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/limma",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "48e4d1f",
+      "git_last_commit_date": "2022-09-11",
+      "Hash": "a381f94025b5cb80357c86df1305d28e",
+      "Requirements": []
+    },
     "listenv": {
       "Package": "listenv",
       "Version": "0.8.0",
