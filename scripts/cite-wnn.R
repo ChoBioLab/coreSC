@@ -299,6 +299,16 @@ x <- NormalizeData(
   ScaleData() %>%
   RunPCA(reduction.name = "apca")
 
+p1 <- DimPlot(
+  x,
+  group.by = "object"
+)
+
+save_figure(
+  p1,
+  "combined_dimplot"
+)
+
 str_section_noloop("Pre-harmony Normalized")
 
 # harmonize
@@ -330,7 +340,7 @@ x <- FindMultiModalNeighbors(
     "harmony_a"
   ),
   dims.list = list(
-    1:20,
+    1:d,
     1:18
   ),
   modality.weight.name = "RNA.weight"
