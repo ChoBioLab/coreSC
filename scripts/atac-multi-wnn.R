@@ -538,8 +538,7 @@ integrated <- RunHarmony(
   )
 
 p1 <- DimPlot(
-  integrated,
-  reduction = "harmony"
+  integrated
 )
 
 save_figure(

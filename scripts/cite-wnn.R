@@ -6,6 +6,8 @@ library(dplyr)
 library(patchwork)
 library(ggplot2)
 library(future) # parallelization
+library(harmony)
+library(limma)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
@@ -120,40 +122,46 @@ for (i in 1:nrow(samples)) {
     RunPCA(
       npcs = d,
       verbose = FALSE
+    ) %>%
+    RunUMAP(
+      dims = 1:d,
+      reduction.name = "umap.rna",
+      reduction.key = "rnaUMAP_"
     )
 
+  # norm, neighborhood formation and clustering
   DefaultAssay(x) <- "ADT"
   VariableFeatures(x) <- rownames(x[["ADT"]])
+
   x <- NormalizeData(
     x,
     normalization.method = "CLR",
     margin = 2
   ) %>%
     ScaleData() %>%
-    RunPCA(reduction.name = "apca")
-
-  # neighborhood formation and clustering
-  x <- FindMultiModalNeighbors(
-    x,
-    reduction.list = list("pca", "apca"),
-    dims.list = list(1:d, 1:18),
-    modality.weight.name = "RNA.weight"
-  )
-
-  x <- RunUMAP(
-    x,
-    nn.name = "weighted.nn",
-    reduction.name = "wnn.umap",
-    reduction.key = "wnnUMAP_"
-  )
-
-  x <- FindClusters(
-    x,
-    graph.name = "wsnn",
-    algorithm = 3,
-    resolution = params["res", ],
-    verbose = FALSE
-  )
+    RunPCA(reduction.name = "apca") %>%
+    FindMultiModalNeighbors(
+      reduction.list = list(
+        "pca",
+        "apca"
+      ),
+      dims.list = list(
+        1:d,
+        1:18
+      ),
+      modality.weight.name = "RNA.weight"
+    ) %>%
+    RunUMAP(
+      nn.name = "weighted.nn",
+      reduction.name = "wnn.umap",
+      reduction.key = "wnnUMAP_"
+    ) %>%
+    FindClusters(
+      graph.name = "wsnn",
+      algorithm = 3,
+      resolution = params["res", ],
+      verbose = FALSE
+    )
 
   str_section_head("Subset, SCT Normd, Red, Clust") # logging
 
@@ -170,7 +178,7 @@ for (i in 1:nrow(samples)) {
   x <- RunUMAP(
     x,
     reduction = "apca",
-    dims = 1:18,
+    dims = 1:d,
     assay = "ADT",
     reduction.name = "adt.umap",
     reduction.key = "adtUMAP_"
@@ -255,63 +263,95 @@ if (length(samples$name) == 1) {
   save_object(objects, "individual_clustered")
 }
 
-
-
-
-
-# TODO setup findallmarkers
 # integration
 # https://satijalab.org/signac/1.2.0/articles/integration.html
 # https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
-combined <- Reduce(merge, objects)
+# https://github.com/satijalab/seurat/issues/6089
+x <- Reduce(merge, objects)
+save_h5(x, "combined")
 
-DefaultAssay(combined) <- "ADT"
-VariableFeatures(combined) <- rownames(combined[["ADT"]])
-combined <- NormalizeData(
-  combined,
+str_section_noloop("Combined")
+
+DefaultAssay(x) <- "RNA"
+x <- SCTransform(
+  x,
+  vst.flavor = "v2",
+  verbose = FALSE
+) %>%
+  RunPCA(
+    npcs = d,
+    verbose = FALSE
+  ) %>%
+  RunUMAP(
+    dims = 1:d,
+    reduction.name = "umap.rna",
+    reduction.key = "rnaUMAP_"
+  )
+
+DefaultAssay(x) <- "ADT"
+VariableFeatures(x) <- rownames(x[["ADT"]])
+
+x <- NormalizeData(
+  x,
   normalization.method = "CLR",
   margin = 2
 ) %>%
   ScaleData() %>%
   RunPCA(reduction.name = "apca")
 
-# DefaultAssay(x) <- "RNA"
-# x <- SCTransform(
-#   x,
-#   vst.flavor = "v2",
-#   verbose = FALSE
-# ) %>%
-#   RunPCA(
-#     npcs = d,
-#     verbose = FALSE
-#   )
+str_section_noloop("Pre-harmony Normalized")
 
-p1 <- DimPlot(
-  combined,
-  group.by = "object",
-  pt.size = 0.1
-)
-
-save_figure(
-  p1,
-  "combined_dimplot"
-)
-
-integrated <- RunHarmony(
-  object = combined,
+# harmonize
+x <- RunHarmony(
+  object = x,
   group.by.vars = "object",
   reduction = "apca",
   assay.use = "ADT",
-  project.dim = FALSE
+  project.dim = FALSE,
+  reduction.save = "harmony_a"
+)
+
+x <- RunHarmony(
+  object = x,
+  group.by.vars = "object",
+  reduction = "pca",
+  assay.use = "SCT",
+  project.dim = FALSE,
+  reduction.save = "harmony_r"
+)
+
+str_section_noloop("Harmonized")
+
+# integrated multimodal wnn
+x <- FindMultiModalNeighbors(
+  object = x,
+  reduction.list = list(
+    "harmony_r",
+    "harmony_a"
+  ),
+  dims.list = list(
+    1:20,
+    1:18
+  ),
+  modality.weight.name = "RNA.weight"
 ) %>%
   RunUMAP(
-    dims = 2:30,
-    reduction = "harmony"
+    nn.name = "weighted.nn",
+    reduction.name = "wnn.umap",
+    assay = "SCT"
+  ) %>%
+  FindClusters(
+    graph.name = "wsnn",
+    algorithm = 3,
+    resolution = params["res", ]
   )
 
+str_section_noloop("Integrated")
+save_h5(x, "integrated")
+
 p1 <- DimPlot(
-  integrated,
-  reduction = "harmony"
+  x,
+  reduction = "wnn.umap"
 )
 
 save_figure(
@@ -319,18 +359,16 @@ save_figure(
   "integrated_dimplot"
 )
 
-DefaultAssay(integrated) <- "SCT"
-integrated <- PrepSCTFindMarkers(integrated)
+DefaultAssay(x) <- "SCT"
+x <- PrepSCTFindMarkers(x)
 
 markers <- FindAllMarkers(
-  integrated,
+  x,
   assay = "SCT",
   verbose = FALSE
 )
 
-save_h5(combined, "combined")
-save_h5(integrated, "integrated")
-write.csv(markers, "all_markers.csv")
+write.csv(markers, paste0(out_path, "all_markers.csv"))
 
 sessionInfo()
 
