@@ -156,10 +156,7 @@ for (i in 1:nrow(samples)) {
   )
 
   # more accurate peak calling using MACS2
-  peaks <- CallPeaks(
-    x,
-    macs2.path = "/home/cho_lab/chris/miniconda3/envs/signac/bin/macs2"
-  )
+  peaks <- CallPeaks(x)
 
   # remove peaks on nonstandard chromosomes and in genomic blacklist regions
   peaks <- keepStandardChromosomes(
