@@ -1,6 +1,6 @@
 # !/usr/bin/env Rscript
 
-library(tidyverse)
+library(dplyr)
 
 # capture bash vars
 args <- commandArgs(trailingOnly = T)
@@ -20,9 +20,6 @@ packages <- c(
   "patchwork",
   "future"
 )
-
-if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install("glmGamPoi")
 
 # convenience functions
 save_figure <- function(plots, name, type = "pdf", width, height) {
