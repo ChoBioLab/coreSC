@@ -8,9 +8,22 @@ function on_failure {
 
 trap on_failure ERR
 
+# pass arguments from cli
+while getopts a:c:s:p: option
+do
+    case "${option}"
+        in
+        a) atac=${OPTARG};;
+        c) cite=${OPTARG};;
+        s) samples=${OPTARG};;
+        p) params=${OPTARG};;
+    esac
+done
+
+# housekeeping
 TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
-check_begin=0 # process number iterates from 1 for user
-check_end=2
+OUT_DIR="output/output_$TIMESTAMP"
+mkdir -p $OUT_DIR $OUT_DIR/tmp
 
 declare -a SCRIPTS=(
 "preamble.R"
@@ -18,54 +31,14 @@ declare -a SCRIPTS=(
 "integrate.R"
 )
 
-# pass arguments from cli
-while getopts b:e:i:m:M:a:c: option
-do
-    case "${option}"
-        in
-        b) check_begin=${OPTARG};;
-        e) check_end=${OPTARG};;
-        i) check_input=${OPTARG};;
-        m) merge_combine=${OPTARG};;
-        M) multimodal=${OPTARG};;
-        a) atac=${OPTARG};;
-        c) cite=${OPTARG};;
-    esac
-done
+# put configs in place
+cp "${samples:-}" ./config
+cp "${params:-}" ./config
 
-# do check for custom start
-if [[ $check_begin -ne 0 ]]
-then
-    if [[ -z "$check_input" ]]
-    then
-        echo "check_input value required for custom start point"
-    else
-        OUT_DIR="output/${check_input}"
-        check_begin=$((check_begin - 1))
-        Rscript ./scripts/preamble.R $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
-    fi
-else
-    OUT_DIR="output/output_$TIMESTAMP"
-    mkdir -p $OUT_DIR $OUT_DIR/tmp
-fi
+ls config
 
-# do check for sample combine preference
-if [[ "${merge_combine:-}" == "TRUE" ]]
-then
-    echo "Combining samples using merge"
-    SCRIPTS=("${SCRIPTS[@]/integrate/merge}")
-    echo "${SCRIPTS[@]}"
-else
-    echo "Combining samples using integration"
-fi
-
-# do check for sample combine preference
-if [[ "${multimodal:-}" == "TRUE" ]]
-then
-    echo "Creating multimodal object"
-    SCRIPTS=("${SCRIPTS[@]/object/multimodal}")
-    echo "${SCRIPTS[@]}"
-elif [[ "${atac:-}" == "TRUE" ]]
+# do check for multimodal routine
+if [[ "${atac:-}" == "TRUE" ]]
 then
     echo "Creating ATAC object"
     SCRIPTS=("preamble.R" "atac-multi-wnn.R")
@@ -79,12 +52,6 @@ then
     check_end=1
 else
     echo "Creating traditional Seurat object"
-fi
-
-# adjust index from human to bash
-if [[ $check_end -ne 2 ]]
-then
-    check_end=$((check_end - 1))
 fi
 
 # execute pipeline scripts
