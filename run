@@ -64,3 +64,4 @@ done
 
 cp ./config/params.csv ./config/samples.csv $OUT_DIR
 rm -rf $OUT_DIR/tmp
+
