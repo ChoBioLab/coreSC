@@ -4,7 +4,7 @@
     "Repositories": [
       {
         "Name": "CRAN",
-        "URL": "https://cloud.r-project.org"
+        "URL": "https://packagemanager.rstudio.com/cran/latest"
       }
     ]
   },
@@ -267,6 +267,25 @@
         "S4Vectors"
       ]
     },
+    "DelayedMatrixStats": {
+      "Package": "DelayedMatrixStats",
+      "Version": "1.18.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/DelayedMatrixStats",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "50c9aab",
+      "git_last_commit_date": "2022-04-26",
+      "Hash": "2d4a83550bedc8a56cc43f4327102f46",
+      "Requirements": [
+        "DelayedArray",
+        "IRanges",
+        "Matrix",
+        "MatrixGenerics",
+        "S4Vectors",
+        "matrixStats",
+        "sparseMatrixStats"
+      ]
+    },
     "DirichletMultinomial": {
       "Package": "DirichletMultinomial",
       "Version": "1.38.0",
@@ -395,6 +414,26 @@
         "IRanges",
         "S4Vectors",
         "XVector"
+      ]
+    },
+    "HDF5Array": {
+      "Package": "HDF5Array",
+      "Version": "1.24.2",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/HDF5Array",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "fb213ba",
+      "git_last_commit_date": "2022-08-01",
+      "Hash": "13693baafc480c1bb4005fe6f5e4172f",
+      "Requirements": [
+        "BiocGenerics",
+        "DelayedArray",
+        "IRanges",
+        "Matrix",
+        "Rhdf5lib",
+        "S4Vectors",
+        "rhdf5",
+        "rhdf5filters"
       ]
     },
     "IRanges": {
@@ -650,6 +689,17 @@
       "Requirements": [
         "Rcpp"
       ]
+    },
+    "Rhdf5lib": {
+      "Package": "Rhdf5lib",
+      "Version": "1.18.2",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/Rhdf5lib",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "d104bbf",
+      "git_last_commit_date": "2022-05-12",
+      "Hash": "2958e31b9b8ea852e487bcb3c24b5b09",
+      "Requirements": []
     },
     "Rhtslib": {
       "Package": "Rhtslib",
@@ -978,6 +1028,22 @@
       "Hash": "543776ae6848fde2f48ff3816d0628bc",
       "Requirements": []
     },
+    "beachmat": {
+      "Package": "beachmat",
+      "Version": "2.12.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/beachmat",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "3e6af14",
+      "git_last_commit_date": "2022-04-26",
+      "Hash": "2a52023b7b17fb9600abe3243b796470",
+      "Requirements": [
+        "BiocGenerics",
+        "DelayedArray",
+        "Matrix",
+        "Rcpp"
+      ]
+    },
     "biomaRt": {
       "Package": "biomaRt",
       "Version": "2.52.0",
@@ -1035,6 +1101,14 @@
         "rlang",
         "vctrs"
       ]
+    },
+    "boot": {
+      "Package": "boot",
+      "Version": "1.3-28",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0baa960e3b49c6176a4f42addcbacc59",
+      "Requirements": []
     },
     "bslib": {
       "Package": "bslib",
@@ -1103,6 +1177,16 @@
         "nabor",
         "plotly",
         "shiny"
+      ]
+    },
+    "class": {
+      "Package": "class",
+      "Version": "7.3-20",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "da09d82223e669d270e47ed24ac8686e",
+      "Requirements": [
+        "MASS"
       ]
     },
     "cli": {
@@ -1253,6 +1337,14 @@
       "Hash": "cf6b206a045a684728c3267ef7596190",
       "Requirements": []
     },
+    "docopt": {
+      "Package": "docopt",
+      "Version": "0.7.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Hash": "e9eeef7931ee99ca0093f3f20b88e09b",
+      "Requirements": []
+    },
     "dplyr": {
       "Package": "dplyr",
       "Version": "1.0.9",
@@ -1384,6 +1476,14 @@
         "rlang"
       ]
     },
+    "foreign": {
+      "Package": "foreign",
+      "Version": "0.8-82",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "32b25c97ce306a760c4d9f787991b5d9",
+      "Requirements": []
+    },
     "formatR": {
       "Package": "formatR",
       "Version": "1.12",
@@ -1494,6 +1594,27 @@
         "plyr",
         "scales",
         "withr"
+      ]
+    },
+    "glmGamPoi": {
+      "Package": "glmGamPoi",
+      "Version": "1.8.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/glmGamPoi",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "b723d61",
+      "git_last_commit_date": "2022-04-26",
+      "Hash": "06b4426197431f8bfc48aa68596c69ee",
+      "Requirements": [
+        "BiocGenerics",
+        "DelayedArray",
+        "DelayedMatrixStats",
+        "HDF5Array",
+        "Rcpp",
+        "RcppArmadillo",
+        "SummarizedExperiment",
+        "beachmat",
+        "matrixStats"
       ]
     },
     "globals": {
@@ -1815,6 +1936,15 @@
       "Hash": "0bde42ee282efb18c7c4e63822f5b4f7",
       "Requirements": []
     },
+    "littler": {
+      "Package": "littler",
+      "Version": "0.3.16",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "OS_type": "unix",
+      "Hash": "9c61d9adafa2370b132ea95c691ed314",
+      "Requirements": []
+    },
     "lmtest": {
       "Package": "lmtest",
       "Version": "0.9-40",
@@ -1937,6 +2067,14 @@
       "Requirements": [
         "lattice"
       ]
+    },
+    "nnet": {
+      "Package": "nnet",
+      "Version": "7.3-17",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "cb1d8d9f300a7e536b89c8a88c53f610",
+      "Requirements": []
     },
     "openssl": {
       "Package": "openssl",
@@ -2165,11 +2303,19 @@
         "vroom"
       ]
     },
+    "remotes": {
+      "Package": "remotes",
+      "Version": "2.4.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "227045be9aee47e6dda9bb38ac870d67",
+      "Requirements": []
+    },
     "renv": {
       "Package": "renv",
       "Version": "0.15.5",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Hash": "6a38294e7d12f5d8e656b08c5bd8ae34",
       "Requirements": []
     },
@@ -2224,6 +2370,33 @@
       "Hash": "b59ad4037854539c34b9a1d2b22a9a4c",
       "Requirements": [
         "sp"
+      ]
+    },
+    "rhdf5": {
+      "Package": "rhdf5",
+      "Version": "2.40.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/rhdf5",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "fb6c15a",
+      "git_last_commit_date": "2022-04-26",
+      "Hash": "46690d82f3e32c11679919456785c42c",
+      "Requirements": [
+        "Rhdf5lib",
+        "rhdf5filters"
+      ]
+    },
+    "rhdf5filters": {
+      "Package": "rhdf5filters",
+      "Version": "1.8.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/rhdf5filters",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "b0b588b",
+      "git_last_commit_date": "2022-04-26",
+      "Hash": "aa885eebeb76d010138fdafe9e91245e",
+      "Requirements": [
+        "Rhdf5lib"
       ]
     },
     "rjson": {
@@ -2428,6 +2601,30 @@
       "Requirements": [
         "lattice"
       ]
+    },
+    "sparseMatrixStats": {
+      "Package": "sparseMatrixStats",
+      "Version": "1.8.0",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/sparseMatrixStats",
+      "git_branch": "RELEASE_3_15",
+      "git_last_commit": "4f1e221",
+      "git_last_commit_date": "2022-04-26",
+      "Hash": "613693a362fb66eb32dae292b0c9e830",
+      "Requirements": [
+        "Matrix",
+        "MatrixGenerics",
+        "Rcpp",
+        "matrixStats"
+      ]
+    },
+    "spatial": {
+      "Package": "spatial",
+      "Version": "7.3-15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c23666fdb7789c8a45e65340bb334607",
+      "Requirements": []
     },
     "spatstat.core": {
       "Package": "spatstat.core",
