@@ -1,8 +1,13 @@
 FROM coresc-test
 
-ENV PARAMS_HOST=/home/chris/Downloads/config/params.csv
-ENV SAMPLES_HOST=/home/chris/Downloads/config/params.csv
-ENV OUT_HOST=/home/chris/Downloads/output
+# edit PARAMS_HOST, SAMPLES_HOST, and OUT_HOST with the appropriate paths
+
+ENV PARAMS_HOST=/ABSOLUTE/HOST/PATH/TO/params.csv
+ENV SAMPLES_HOST=/ABSOLUTE/HOST/PATH/TO/params.csv
+ENV OUT_HOST=/DESIRED/HOST/OUTPUT/PATH
+
+# do not edit the values below this line
+################################################################################
 
 ENV PARAMS_CONTAINER=/app/config/params.csv
 ENV SAMPLES_CONTAINER=/app/config/samples.csv
