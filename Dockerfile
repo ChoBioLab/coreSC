@@ -17,6 +17,7 @@ RUN apt-get update \
     libgsl-dev \
     libgeos-dev \
     libhdf5-dev \
+    libglpk-dev \
     python3-dev \
     python3-pip \
     git \
