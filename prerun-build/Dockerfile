@@ -1,4 +1,4 @@
-FROM coresc-test
+FROM public.ecr.aws/c8r7r8g5/chobiolab/tools/coresc:latest
 
 # edit PARAMS_HOST, SAMPLES_HOST, and OUT_HOST with the appropriate paths
 
