@@ -31,12 +31,6 @@ declare -a SCRIPTS=(
 "integrate.R"
 )
 
-# put configs in place
-cp "${samples:-}" ./config
-cp "${params:-}" ./config
-
-ls config
-
 # do check for multimodal routine
 if [[ "${atac:-}" == "TRUE" ]]
 then
