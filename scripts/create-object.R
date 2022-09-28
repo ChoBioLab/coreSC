@@ -13,7 +13,7 @@ load(paste0(out_path, "tmp/preamble_image.RData"))
 
 plan(
   multicore,
-  workers = params["future,workers", ]
+  workers = params["future.workers", ]
 ) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
