@@ -37,19 +37,16 @@ then
     echo "Creating ATAC object"
     SCRIPTS=("preamble.R" "atac-multi-wnn.R")
     echo "${SCRIPTS[@]}"
-    check_end=1
 elif [[ "${cite:-}" == "TRUE" ]]
 then
     echo "Creating CITE object"
     SCRIPTS=("preamble.R" "cite-wnn.R")
     echo "${SCRIPTS[@]}"
-    check_end=1
 else
     echo "Creating traditional Seurat object"
 fi
 
 # execute pipeline scripts
-# for i in $(eval echo "{$check_begin..$check_end}")
 for i in "${SCRIPTS[@]}"
 do
     echo "coreSC version commit $(git rev-parse --short HEAD)" >> $OUT_DIR/log.txt
