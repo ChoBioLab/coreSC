@@ -105,8 +105,8 @@ for (i in 1:nrow(samples)) {
     x,
     nFeature_RNA > params["min.features", ] &
       nFeature_RNA < params["max.features", ] &
-      nCount_RNA > params["min.count", ] &
-      nCount_RNA < params["max.count", ] &
+      nCount_RNA > params["min.count.rna", ] &
+      nCount_RNA < params["max.count.rna", ] &
       percent.mt < params["max.percent.mt", ] &
       percent.mt > params["min.percent.mt", ]
   )
