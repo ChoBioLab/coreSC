@@ -1,6 +1,7 @@
-output/
+output_*
 tmp/
 *.Rhistory
 *.swp
 config/*.csv*
+config/env
 *.RData

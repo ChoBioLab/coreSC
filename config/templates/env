@@ -1,0 +1,6 @@
+DATA_PATH=/TOP/LEVEL/PATH/TO/DATA
+
+# do not edit below this line
+################################################################################
+
+APP_PATH=$(cd ../; pwd)

@@ -30,8 +30,13 @@ for (i in 1:nrow(samples)) {
 
   x <- CreateSeuratObject(
     counts = rna,
-    project = samples$project[i]
+    project = samples$project[i],
+    min.cells = params["min.cells", ],
+    min.features = params["min.features", ]
   )
+
+  x@meta.data$object <- samples$name[i]
+  x@meta.data$group <- samples$group[i]
 
   x[["ADT"]] <- CreateAssayObject(counts = adt)
 
@@ -101,19 +106,19 @@ for (i in 1:nrow(samples)) {
 
   str_section_head("Base Seurat Object") # logging
 
+  DefaultAssay(x) <- "RNA"
   x <- subset(
     x,
     nFeature_RNA > params["min.features", ] &
       nFeature_RNA < params["max.features", ] &
-      nCount_RNA > params["min.count", ] &
-      nCount_RNA < params["max.count", ] &
+      nCount_RNA > params["min.count.rna", ] &
+      nCount_RNA < params["max.count.rna", ] &
       percent.mt < params["max.percent.mt", ] &
       percent.mt > params["min.percent.mt", ]
   )
 
   # norm, dimred, and clustering
   # clustering is performed on individual samples for RNA QC
-  DefaultAssay(x) <- "RNA"
   x <- SCTransform(
     x,
     vst.flavor = "v2",
@@ -218,9 +223,6 @@ for (i in 1:nrow(samples)) {
     height = 6
   )
 
-  x@meta.data$object <- samples$name[i]
-  x@meta.data$group <- samples$group[i]
-
   # plotting clusters by specified group
   p1 <- DimPlot(
     x,
@@ -237,7 +239,7 @@ for (i in 1:nrow(samples)) {
 
   save_figure(
     (p1 + p2),
-    paste0(samples$name[i], "individual_dimplot"),
+    paste0(samples$name[i], "_individual_dimplot"),
     width = 12,
     height = 6
   )
