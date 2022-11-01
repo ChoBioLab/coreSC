@@ -5,3 +5,4 @@ tmp/
 config/*.csv*
 config/env
 *.RData
+*.sif*
