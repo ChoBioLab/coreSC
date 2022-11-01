@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# pass arguments from cli
+while getopts a:c:s:p: option
+do
+    case "${option}"
+        in
+        a) atac=${OPTARG};;
+        c) cite=${OPTARG};;
+        s) samples=${OPTARG};;
+        p) params=${OPTARG};;
+    esac
+done
+
