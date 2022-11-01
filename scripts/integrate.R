@@ -96,7 +96,7 @@ y <- FindAllMarkers(
 )
 
 save_h5(x, "integrated")
-write.csv(y, "all_markers.csv")
+write.csv(y, paste0(out_path, "all_markers.csv"))
 
 print("End of integrated.R")
 
