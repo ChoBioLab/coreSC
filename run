@@ -10,5 +10,5 @@ singularity run \
   -B $APP_PATH/output:/app/output \
   -B ./config/params.csv:/app/config/params.csv \
   -B ./config/samples.csv:/app/config/samples.csv \
-  docker://public.ecr.aws/c8r7r8g5/chobiolab/tools/coresc:0.1.7-beta "$@"
+  docker://public.ecr.aws/c8r7r8g5/chobiolab/tools/coresc:1.0.0 "$@"
 
