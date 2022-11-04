@@ -547,6 +547,101 @@ x <- RunHarmony(
 
 str_section_noloop("Harmonized")
 
+DefaultAssay(x) <- "peaks"
+
+# compute nucleosome signal score per cell
+x <- NucleosomeSignal(object = x)
+
+# compute TSS enrichment score per cell
+x <- TSSEnrichment(
+  object = x,
+  fast = FALSE
+)
+
+# add blacklist ratio and fraction of reads in peaks
+x$pct_reads_in_peaks <- x$atac_peak_region_fragments / x$atac_fragments * 100
+# x$blacklist_ratio <- x$blacklist_region_fragments / x$peak_region_fragments
+x$high.tss <- ifelse(
+  x$TSS.enrichment > params["tss.score", ],
+  "High",
+  "Low"
+)
+str_section_head("Integrated Nucleosome and TSS Scores")
+
+p1 <- TSSPlot(
+  x,
+  group.by = "high.tss"
+) + NoLegend()
+
+save_figure(
+  p1,
+  paste0(name, "_integrated_tss")
+)
+
+x$nucleosome_group <- ifelse(
+  x$nucleosome_signal > 4,
+  "NS > 4",
+  "NS < 4"
+)
+
+p1 <- FragmentHistogram(
+  object = x,
+  group.by = "_integrated_nucleosome_group"
+)
+
+save_figure(
+  p1,
+  paste0(name, "_integrated_frag_histogram")
+)
+
+p1 <- VlnPlot(
+  object = x,
+  features = c(
+    "pct_reads_in_peaks",
+    "TSS.enrichment",
+    "nucleosome_signal"
+  ),
+  ncol = 3
+)
+
+save_figure(
+  p1,
+  paste0(name, "integrated_atac_vln")
+)
+
+x <- subset(
+  x = x,
+  subset = nCount_ATAC < params["max.count.atac", ] &
+    nCount_ATAC > params["min.count.atac", ] &
+    nCount_RNA < params["max.count.rna", ] &
+    nCount_RNA > params["min.count.rna", ] &
+    pct_reads_in_peaks > params["pct.reads.peaks", ] &
+    nucleosome_signal < params["nucleosome", ] &
+    TSS.enrichment > params["tss.score", ] &
+    percent.mt < params["max.percent.mt", ]
+)
+str_section_head("Integrated Filtered")
+
+# ATAC analysis
+# We exclude the first dimension as this is typically correlated with sequencing depth
+x <- RunTFIDF(x) %>%
+  FindTopFeatures(
+    min.cutoff = "q0"
+  ) %>%
+  RunSVD()
+
+x <- RegionStats(
+  x,
+  genome = BSgenome.Hsapiens.UCSC.hg38
+)
+
+p1 <- DepthCor(x)
+
+save_figure(
+  p1,
+  paste0(name, "integrated_macs2_depth")
+)
+
 # integrated multimodal wnn
 x <- FindMultiModalNeighbors(
   object = x,
@@ -559,7 +654,7 @@ x <- FindMultiModalNeighbors(
     1:18
   ),
   modality.weight.name = "RNA.weight"
-) %>%
+  ) %>%
   RunUMAP(
     nn.name = "weighted.nn",
     reduction.name = "wnn.umap",
@@ -584,6 +679,45 @@ save_figure(
   "integrated_dimplot"
 )
 
+str_section_head("Integrated Clustered")
+
+# Get a list of motif position frequency matrices from the JASPAR database
+pwm_set <- getMatrixSet(
+  x = JASPAR2020,
+  opts = list(
+    species = 9606,
+    all_versions = FALSE
+  )
+)
+
+motif.matrix <- CreateMotifMatrix(
+  features = granges(x),
+  pwm = pwm_set,
+  genome = "hg38",
+  use.counts = FALSE
+)
+
+motif.object <- CreateMotifObject(
+  data = motif.matrix,
+  pwm = pwm_set
+)
+
+x <- SetAssayData(
+  x,
+  assay = "peaks",
+  slot = "motifs",
+  new.data = motif.object
+)
+
+# Note that this step can take 30-60 minutes
+x <- RunChromVAR(
+  object = x,
+  genome = BSgenome.Hsapiens.UCSC.hg38
+)
+str_section_head("Integrated Motif Scored")
+
+warnings()
+
 DefaultAssay(x) <- "SCT"
 x <- PrepSCTFindMarkers(x)
 
@@ -598,3 +732,4 @@ write.csv(markers, paste0(out_path, "all_markers.csv"))
 sessionInfo()
 
 print("End of atac-multi.wnn.R")
+
