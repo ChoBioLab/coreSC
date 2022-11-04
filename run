@@ -7,7 +7,7 @@ singularity run \
   --no-home \
   --pwd /app \
   -B $DATA_PATH:$DATA_PATH \
-  -B $APP_PATH/output:/app/output \
+  -B $APP_PATH/coreSC/output:/app/output \
   -B ./config/params.csv:/app/config/params.csv \
   -B ./config/samples.csv:/app/config/samples.csv \
   docker://public.ecr.aws/c8r7r8g5/chobiolab/tools/coresc:$CORESC_VER "$@"
