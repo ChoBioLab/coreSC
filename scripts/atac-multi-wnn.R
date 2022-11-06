@@ -586,7 +586,7 @@ x$nucleosome_group <- ifelse(
 
 p1 <- FragmentHistogram(
   object = x,
-  group.by = "_integrated_nucleosome_group"
+  group.by = "nucleosome_group"
 )
 
 save_figure(
@@ -606,7 +606,7 @@ p1 <- VlnPlot(
 
 save_figure(
   p1,
-  paste0(name, "integrated_atac_vln")
+  paste0(name, "_integrated_atac_vln")
 )
 
 x <- subset(
@@ -639,7 +639,7 @@ p1 <- DepthCor(x)
 
 save_figure(
   p1,
-  paste0(name, "integrated_macs2_depth")
+  paste0(name, "_integrated_macs2_depth")
 )
 
 # integrated multimodal wnn
@@ -676,7 +676,7 @@ p1 <- DimPlot(
 
 save_figure(
   p1,
-  "integrated_dimplot"
+  "_integrated_dimplot"
 )
 
 str_section_head("Integrated Clustered")
