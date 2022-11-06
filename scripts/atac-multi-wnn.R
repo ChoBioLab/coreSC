@@ -179,6 +179,7 @@ for (i in 1:nrow(samples)) {
   # create a new assay using the MACS2 peak set and add it to the Seurat object
   x[["peaks"]] <- CreateChromatinAssay(
     counts = macs2_counts,
+    genome = hg38,
     fragments = paste0(
       samples$dir[i],
       "/atac_fragments.tsv.gz"
