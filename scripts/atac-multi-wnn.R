@@ -179,7 +179,6 @@ for (i in 1:nrow(samples)) {
   # create a new assay using the MACS2 peak set and add it to the Seurat object
   x[["peaks"]] <- CreateChromatinAssay(
     counts = macs2_counts,
-    genome = hg38,
     fragments = paste0(
       samples$dir[i],
       "/atac_fragments.tsv.gz"
@@ -631,6 +630,11 @@ x <- RunTFIDF(x) %>%
   ) %>%
   RunSVD()
 
+# fix to account for NA values being added as char string after integration
+for (i in 1:length(x@assays$peaks@ranges@seqinfo@genome)) {
+  x@assays$peaks@ranges@seqinfo@genome[i] <- NA
+}
+
 x <- RegionStats(
   x,
   genome = BSgenome.Hsapiens.UCSC.hg38
@@ -668,7 +672,6 @@ x <- FindMultiModalNeighbors(
   )
 
 str_section_noloop("Integrated")
-save_h5(x, "integrated")
 
 p1 <- DimPlot(
   x,
@@ -728,6 +731,7 @@ markers <- FindAllMarkers(
   verbose = FALSE
 )
 
+save_h5(x, "integrated")
 write.csv(markers, paste0(out_path, "all_markers.csv"))
 
 sessionInfo()
