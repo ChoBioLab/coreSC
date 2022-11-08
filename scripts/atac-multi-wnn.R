@@ -731,7 +731,7 @@ markers <- FindAllMarkers(
   verbose = FALSE
 )
 
-save_h5(x, "integrated")
+save_object(x, "integrated")
 write.csv(markers, paste0(out_path, "all_markers.csv"))
 
 sessionInfo()
