@@ -7,8 +7,8 @@ on:
 
 env:
   AWS_REGION: us-east-1                   # set this to your preferred AWS region, e.g. us-west-1
-  REGISTRY_ALIAS: c8r7r8g5                # aws ecr public alias
-  REPOSITORY: chobiolab/tools/coresc      # aws ecr repo path
+  REGISTRY_ALIAS: chobiolab                # aws ecr public alias
+  REPOSITORY: coresc      # aws ecr repo path
   BUILD_PATH: .                           # dir location of build files in repo
   CORESC_VER: latest                      # version of coreSC
 
