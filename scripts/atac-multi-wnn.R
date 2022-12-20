@@ -659,7 +659,7 @@ x <- FindMultiModalNeighbors(
     1:18
   ),
   modality.weight.name = "RNA.weight"
-  ) %>%
+) %>%
   RunUMAP(
     nn.name = "weighted.nn",
     reduction.name = "wnn.umap",
@@ -737,4 +737,3 @@ write.csv(markers, paste0(out_path, "all_markers.csv"))
 sessionInfo()
 
 print("End of atac-multi.wnn.R")
-
