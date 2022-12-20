@@ -32,6 +32,11 @@ then
     echo "Creating CITE object"
     SCRIPTS=("preamble.R" "cite-wnn.R")
     echo "${SCRIPTS[@]}"
+elif [[ "${harmonize:-}" == "TRUE" ]]
+then
+    echo "Integrating using Harmony"
+    SCRIPTS=("preamble.R" "create-object.R" "harmonize.R")
+    echo "${SCRIPTS[@]}"
 else
     echo "Creating traditional Seurat object"
 fi

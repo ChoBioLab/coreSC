@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # pass arguments from cli
-while getopts a:c:s:p: option
+while getopts a:c:s:p:h: option
 do
     case "${option}"
         in
@@ -9,6 +9,7 @@ do
         c) cite=${OPTARG};;
         s) samples=${OPTARG};;
         p) params=${OPTARG};;
+        h) harmonize=${OPTARG};;
     esac
 done
 
