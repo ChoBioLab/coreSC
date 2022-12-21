@@ -44,7 +44,7 @@ if (length(samples$name) == 1) {
     reduction.save = "harmony"
   )
 
-  DefaultAssay(x) <- "integrated"
+  DefaultAssay(x) <- "harmony"
   str_section_noloop("Integrated") # logging
 }
 
