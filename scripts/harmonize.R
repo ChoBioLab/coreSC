@@ -44,35 +44,34 @@ if (length(samples$name) == 1) {
     reduction.save = "harmony"
   )
 
-  DefaultAssay(x) <- "harmony"
   str_section_noloop("Integrated") # logging
 }
 
 # clustering
 RunUMAP(
   x,
-  reduction = "pca",
+  reduction = "harmony",
   dims = 1:d
 ) %>%
   FindNeighbors(
-    reduction = "pca",
+    reduction = "harmony",
     dims = 1:d
   ) %>%
   FindClusters(
-    resolution = params["res", ]
+    resolution = 20
   )
 
 str_section_noloop("Reduced & Clustered") # logging
 
 p1 <- DimPlot(
   x,
-  reduction = "umap",
+  reduction = "harmony",
   group.by = "group"
 )
 
 p2 <- DimPlot(
   x,
-  reduction = "umap",
+  reduction = "harmony",
   label = T
 )
 
@@ -91,7 +90,7 @@ y <- FindAllMarkers(
   verbose = FALSE
 )
 
-save_h5(x, "integrated")
+save_object(x, "integrated")
 write.csv(y, paste0(out_path, "all_markers.csv"))
 
 print("End of integrated.R")
