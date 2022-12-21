@@ -24,6 +24,8 @@ if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
   x <- objects[[1]]
 } else { # integrate
+  x <- Reduce(merge, objects)
+
   x <- RunHarmony(
     object = objects,
     group.by.vars = "object",
