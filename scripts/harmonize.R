@@ -26,8 +26,18 @@ if (length(samples$name) == 1) {
 } else { # integrate
   x <- Reduce(merge, objects)
 
+  x <- SCTransform(
+    x,
+    vst.flavor = "v2",
+    verbose = FALSE
+  ) %>%
+    RunPCA(
+      npcs = d,
+      verbose = FALSE
+    )
+
   x <- RunHarmony(
-    object = objects,
+    object = x,
     group.by.vars = "object",
     reduction = "pca",
     assay.use = "SCT",
