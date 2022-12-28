@@ -111,7 +111,20 @@ for (i in 1:nrow(samples)) {
   )
   str_section_head("Base Seurat Object")
 
-  x[["percent.mt"]] <- PercentageFeatureSet(x, pattern = "^MT-")
+  x[["percent.mt"]] <- PercentageFeatureSet(
+    x,
+    pattern = "(?i)^MT-"
+  )
+
+  x[["percent.rb"]] <- PercentageFeatureSet(
+    x,
+    pattern = "RPS|RPL"
+  )
+
+  x[["percent.hb"]] <- PercentageFeatureSet(
+    x,
+    pattern = "(?i)^HB[^(P)]"
+  )
 
   # add in the ATAC-seq data
   grange.counts <- StringToGRanges(
@@ -143,9 +156,11 @@ for (i in 1:nrow(samples)) {
     features = c(
       "nCount_ATAC",
       "nCount_RNA",
-      "percent.mt"
+      "percent.mt",
+      "percent.rb",
+      "percent.hb"
     ),
-    ncol = 3,
+    ncol = 5,
     log = TRUE
   ) + NoLegend()
 

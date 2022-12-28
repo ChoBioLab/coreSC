@@ -45,8 +45,6 @@ for (i in 1:nrow(samples)) {
   objects <- c(objects, x)
 }
 
-length(objects)
-
 for (i in 1:length(objects)) {
   x <- objects[[i]]
   name <- unique(x$object)
@@ -56,14 +54,26 @@ for (i in 1:length(objects)) {
     pattern = "(?i)^MT-"
   )
 
+  x[["percent.rb"]] <- PercentageFeatureSet(
+    x,
+    pattern = "RPS|RPL"
+  )
+
+  x[["percent.hb"]] <- PercentageFeatureSet(
+    x,
+    pattern = "(?i)^HB[^(P)]"
+  )
+
   p1 <- VlnPlot(
     x,
     features = c(
       "nFeature_RNA",
       "nCount_RNA",
-      "percent.mt"
+      "percent.mt",
+      "percent.rb",
+      "percent.hb"
     ),
-    ncol = 3
+    ncol = 5
   )
 
   save_figure(
