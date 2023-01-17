@@ -48,7 +48,7 @@ if (length(samples$name) == 1) {
 }
 
 # clustering
-RunUMAP(
+x <- RunUMAP(
   x,
   reduction = "harmony",
   dims = 1:d
