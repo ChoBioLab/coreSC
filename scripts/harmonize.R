@@ -65,13 +65,13 @@ str_section_noloop("Reduced & Clustered") # logging
 
 p1 <- DimPlot(
   x,
-  reduction = "harmony",
+  reduction = "umap",
   group.by = "group"
 )
 
 p2 <- DimPlot(
   x,
-  reduction = "harmony",
+  reduction = "umap",
   label = T
 )
 
