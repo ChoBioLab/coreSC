@@ -58,7 +58,7 @@ x <- RunUMAP(
     dims = 1:d
   ) %>%
   FindClusters(
-    resolution = 20
+    resolution = params["res", ]
   )
 
 str_section_noloop("Reduced & Clustered") # logging
