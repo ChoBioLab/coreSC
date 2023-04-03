@@ -21,11 +21,11 @@ cd coreSC/config && cp templates/* .
 
 ### Config
 1. Required configuration
-  * `env`
-  * `params.csv`
-  * `samples.csv`
+    * `env`
+    * `params.csv`
+    * `samples.csv`
 1. Confirm parallel memory use with future
-  * The `future.mem` param gives `RAM / thread`. Each individual task needs an adequate threshold of RAM to complete its work. Also `future.mem * future.workers` gives the total memory allocation. This should live under the available system RAM for the job as a whole. If either of these considerations are not met, the run will fail!
+    * The `future.mem` param gives `RAM / thread`. Each individual task needs an adequate threshold of RAM to complete its work. Also `future.mem * future.workers` gives the total memory allocation. This should live under the available system RAM for the job as a whole. If either of these considerations are not met, the run will fail!
 
 ## Usage
 - Execution can be carried out with the `run` script.
@@ -37,7 +37,7 @@ cd coreSC/config && cp templates/* .
 
 - Executing `run` alone will perform a standard, single-modal regularization and integration if relevant.
 
-``sh
+```sh
 # examples
 
 ./run           # regularize and integrate with SCTransform method
@@ -45,7 +45,7 @@ cd coreSC/config && cp templates/* .
 ./run -h TRUE   # substitute integration method for harmony
 
 ./run -a TRUE   # alternatively, pass samples through atac-multiome routine
-``
+```
 
 ### Output
 ```sh
