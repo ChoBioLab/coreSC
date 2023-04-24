@@ -4,5 +4,5 @@ DATA_PATH=/TOP/LEVEL/PATH/TO/DATA
 ################################################################################
 
 APP_PATH=$(cd ../; pwd)
-CORESC_VER=latest
+CORESC_VER=v4-r2
 
