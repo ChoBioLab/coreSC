@@ -1,4 +1,4 @@
-FROM public.ecr.aws/chobiolab/seurat:v4-r2
+FROM public.ecr.aws/chobiolab/seurat:v4-r3
 
 WORKDIR /app
 ADD . /app
