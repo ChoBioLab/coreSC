@@ -6,7 +6,7 @@ library(dplyr)
 library(patchwork)
 library(future) # parallelization
 
-args <- commandArgs(trailingOnly = T)
+args <- commandArgs(trailingOnly = TRUE)
 out_path <- paste0(args[1], "/")
 objects <- list()
 load(paste0(out_path, "tmp/preamble_image.RData"))
@@ -17,7 +17,7 @@ plan(
 ) # parallelization
 options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 
-for (i in 1:nrow(samples)) {
+for (i in seq_len(nrow(samples))) {
   if (dir.exists(samples$dir[i])) {
     name <- samples$name[i]
     x <- Read10X( # pulling data with no filter
@@ -45,7 +45,7 @@ for (i in 1:nrow(samples)) {
   objects <- c(objects, x)
 }
 
-for (i in 1:length(objects)) {
+for (i in seq_len(length(objects))) {
   x <- objects[[i]]
   name <- unique(x$object)
 
@@ -167,7 +167,7 @@ for (i in 1:length(objects)) {
   p2 <- DimPlot(
     x,
     reduction = "umap",
-    label = T
+    label = TRUE
   )
 
   save_figure(

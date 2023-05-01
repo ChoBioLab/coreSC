@@ -7,7 +7,7 @@ library(future) # parallelization
 library(harmony)
 library(limma)
 
-args <- commandArgs(trailingOnly = T)
+args <- commandArgs(trailingOnly = TRUE)
 out_path <- paste0(args[1], "/")
 load(paste0(out_path, "tmp/preamble_image.RData"))
 objects <- read_object("individual_clustered")
@@ -72,7 +72,7 @@ p1 <- DimPlot(
 p2 <- DimPlot(
   x,
   reduction = "umap",
-  label = T
+  label = TRUE
 )
 
 save_figure(
