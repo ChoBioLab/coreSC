@@ -182,4 +182,4 @@ for (i in seq_len(length(objects))) {
 
 save_object(objects, "individual_clustered")
 
-print("End of create_object.R")
+print("End of create-object-sct.R")
