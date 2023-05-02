@@ -10,6 +10,7 @@ do
         s) samples=${OPTARG};;
         p) params=${OPTARG};;
         h) harmonize=${OPTARG};;
+        m) mixscape=${OPTARG};;
     esac
 done
 

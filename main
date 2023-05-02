@@ -17,25 +17,30 @@ mkdir -p $OUT_DIR $OUT_DIR/tmp
 
 declare -a SCRIPTS=(
 "preamble.R"
-"create-object.R"
+"create-object-norm.R"
 "integrate.R"
 )
 
 # do check for multimodal routine
 if [[ "${atac:-}" == "TRUE" ]]
 then
-    echo "Creating ATAC object"
+    echo "Running ATAC-multiome WNN Preprocessing"
     SCRIPTS=("preamble.R" "atac-multi-wnn.R")
     echo "${SCRIPTS[@]}"
 elif [[ "${cite:-}" == "TRUE" ]]
 then
-    echo "Creating CITE object"
+    echo "Running CITE-multiome WNN Preprocessing""
     SCRIPTS=("preamble.R" "cite-wnn.R")
     echo "${SCRIPTS[@]}"
 elif [[ "${harmonize:-}" == "TRUE" ]]
 then
     echo "Integrating using Harmony"
-    SCRIPTS=("preamble.R" "create-object.R" "harmonize.R")
+    SCRIPTS=("preamble.R" "create-object-sct.R" "harmonize.R")
+    echo "${SCRIPTS[@]}"
+elif [[ "${mixscape:-}" == "TRUE" ]]
+then
+    echo "Running Mixscape Perturbation Preprocessing"
+    SCRIPTS=("preamble.R" "create-object-norm.R" "mixscape.R")
     echo "${SCRIPTS[@]}"
 else
     echo "Creating traditional Seurat object"
