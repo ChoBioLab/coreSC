@@ -29,7 +29,7 @@ then
     echo "${SCRIPTS[@]}"
 elif [[ "${cite:-}" == "TRUE" ]]
 then
-    echo "Running CITE-multiome WNN Preprocessing""
+    echo "Running CITE-multiome WNN Preprocessing"
     SCRIPTS=("preamble.R" "cite-wnn.R")
     echo "${SCRIPTS[@]}"
 elif [[ "${harmonize:-}" == "TRUE" ]]
