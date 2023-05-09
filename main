@@ -40,7 +40,7 @@ then
 elif [[ "${mixscape:-}" == "TRUE" ]]
 then
     echo "Running Mixscape Perturbation Preprocessing"
-    SCRIPTS=("preamble.R" "create-object-norm.R" "mixscape.R")
+    SCRIPTS=("preamble.R" "create-multi-norm.R" "mixscape.R")
     echo "${SCRIPTS[@]}"
 else
     echo "Creating traditional Seurat object"
