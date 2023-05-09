@@ -122,7 +122,6 @@ for (i in seq_len(length(objects))) {
     ScaleData() %>%
     RunPCA(
       npcs = d,
-      features = VariableFeatures(object = x),
       verbose = FALSE
     ) %>%
     RunUMAP(

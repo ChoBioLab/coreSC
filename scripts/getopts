@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # pass arguments from cli
-while getopts a:c:s:p:h: option
+while getopts a:c:s:p:h:m: option
 do
     case "${option}"
         in

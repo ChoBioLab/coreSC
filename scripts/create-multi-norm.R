@@ -23,6 +23,8 @@ for (i in seq_len(nrow(samples))) {
     raw <- Read10X( # pulling data with no filter
       data.dir = samples$dir[i]
     )
+
+    x <- raw
     str_section_head("Raw Object") # logging
 
     # Pull first word of 2nd modality for assay name
@@ -118,6 +120,7 @@ for (i in seq_len(length(objects))) {
       percent.mt > params["min.percent.mt", ]
   )
 
+  str_section_head("Filtered Object") # logging
   # norm, dimred, and clustering
 
   # clustering is performed on individual samples for QC
@@ -130,7 +133,6 @@ for (i in seq_len(length(objects))) {
     ScaleData() %>%
     RunPCA(
       npcs = d,
-      features = VariableFeatures(object = x),
       verbose = FALSE
     ) %>%
     RunUMAP(
