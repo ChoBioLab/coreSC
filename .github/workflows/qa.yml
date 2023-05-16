@@ -51,4 +51,4 @@ jobs:
         REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
       run: |
         docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$CORESC_VER $BUILD_PATH
-        docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:latest
+        docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$CORESC_VER
