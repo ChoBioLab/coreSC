@@ -4,5 +4,5 @@ DATA_PATH=/mnt/data0/downloads/
 ################################################################################
 
 APP_PATH=$(cd ../; pwd)
-CORESC_VER=latest
+CORESC_VER=qa
 
