@@ -1,4 +1,4 @@
-name: Deploy to Amazon ECR
+name: QA Deploy to Amazon ECR
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
+    environment: qa
 
     steps:
     - name: Checkout
