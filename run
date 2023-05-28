@@ -3,12 +3,26 @@
 source ./scripts/getopts
 source ./config/env
 
+if [[ "${atac:-}" == "TRUE" ]]
+then
+  CORESC_VER="v4-r3-atac-multi-wnn"
+elif [[ "${cite:-}" == "TRUE" ]]
+then
+  CORESC_VER="v4-r3-cite-wnn"
+elif [[ "${harmonize:-}" == "TRUE" ]]
+then
+  CORESC_VER="v4-r3-harmony"
+elif [[ "${mixscape:-}" == "TRUE" ]]
+then
+  CORESC_VER="v4-r3-mixscape"
+fi
+
 singularity run \
   --no-home \
-  --pwd /app \
+  --pwd $APP_PATH \
   -B $DATA_PATH:$DATA_PATH \
-  -B $APP_PATH/coreSC/output:/app/output \
+  -B $APP_PATH:$APP_PATH \
   -B ./config/params.csv:/app/config/params.csv \
   -B ./config/samples.csv:/app/config/samples.csv \
-  docker://public.ecr.aws/chobiolab/coresc:$CORESC_VER "$@"
+  docker://public.ecr.aws/chobiolab/seurat:$CORESC_VER $APP_PATH/main "$@"
 
