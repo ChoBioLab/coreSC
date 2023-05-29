@@ -3,6 +3,6 @@ DATA_PATH=/mnt/data0/downloads/
 # do not edit below this line
 ################################################################################
 
-APP_PATH=$(cd ../; pwd)
+APP_PATH=$(pwd -P)
 CORESC_VER=v4-r3
 
