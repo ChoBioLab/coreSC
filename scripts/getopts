@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # pass arguments from cli
-while getopts a:c:s:p:h:m: option
+while getopts a:c:s:p:h:m:v: option
 do
     case "${option}"
         in
@@ -11,6 +11,7 @@ do
         p) params=${OPTARG};;
         h) harmonize=${OPTARG};;
         m) mixscape=${OPTARG};;
+        v) SEURAT_IMAGE_VER=${OPTARG};;
     esac
 done
 
