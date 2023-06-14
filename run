@@ -5,17 +5,16 @@ source ./config/env
 
 if [[ "${atac:-}" == "TRUE" ]]
 then
-  CORESC_VER="v4-r3-atac-multi-wnn"
-elif [[ "${cite:-}" == "TRUE" ]]
-then
-  CORESC_VER="v4-r3-cite-wnn"
-elif [[ "${harmonize:-}" == "TRUE" ]]
-then
-  CORESC_VER="v4-r3-harmony"
-elif [[ "${mixscape:-}" == "TRUE" ]]
-then
-  CORESC_VER="v4-r3-mixscape"
+  SEURAT_IMAGE=seurat-signac
 fi
+
+if [[ -z ${SEURAT_IMAGE_VER} ]]
+then
+  echo -e "Seurat image version tag needs to be supplied using the -v argument.\n\nFind available versions at https://gallery.ecr.aws/chobiolab/$SEURAT_IMAGE"
+  exit 1
+fi
+
+echo "Using Seurat image $SEURAT_IMAGE:$SEURAT_IMAGE_VER"
 
 singularity run \
   --no-home \
@@ -24,5 +23,5 @@ singularity run \
   -B $APP_PATH:$APP_PATH \
   -B ./config/params.csv:/app/config/params.csv \
   -B ./config/samples.csv:/app/config/samples.csv \
-  docker://public.ecr.aws/chobiolab/seurat:$CORESC_VER $APP_PATH/main "$@"
+  docker://public.ecr.aws/chobiolab/$SEURAT_IMAGE:$SEURAT_IMAGE_VER $APP_PATH/main "$@"
 
