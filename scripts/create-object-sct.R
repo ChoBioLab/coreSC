@@ -38,7 +38,13 @@ for (i in seq_len(nrow(samples))) {
     # TODO add compatibility with hdf5 format
 
     # it's assumed preformed objs have group and name metadata vars
-    x <- readRDS(samples$dir[i])
+    x <- readRDS(samples$dir[i])  # read Seurat object from RDS file
+    if ("object" %in% names(x@meta.data) == FALSE) {
+      x@meta.data$object <- samples$name[i]  # add name metadata if needed
+    }
+    if ("group" %in% names(x@meta.data) == FALSE) {
+      x@meta.data$group <- samples$group[i]  # add group metadata if needed
+    }
     x
   }
 
