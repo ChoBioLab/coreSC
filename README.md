@@ -117,7 +117,7 @@ coreSC/
 | tss.score | transcription start site score |
 | dims | number of dimensions to include |
 | res | clustering resolution |
-| future.mem | memory allocation per thread in MB |
+| future.mem | memory allocation per thread in GB |
 | future.workers | number of parallel threads |
 
 ### samples.csv

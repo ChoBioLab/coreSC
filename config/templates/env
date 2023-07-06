@@ -1,8 +1,11 @@
-DATA_PATH=/mnt/data0/downloads/
+#!/bin/bash
+
+DATA_PATH=/TOP/LEVEL/DATA/PATH
 
 # do not edit below this line
 ################################################################################
 
-APP_PATH=$(cd ../; pwd)
-CORESC_VER=qa
+APP_PATH=$(pwd -P)
 
+# DEFAULT SEURAT IMAGE
+SEURAT_IMAGE=seurat-base

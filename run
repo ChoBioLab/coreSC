@@ -1,14 +1,66 @@
 #!/bin/bash
 
+# Source the getopts script
 source ./scripts/getopts
+
+# Source the environment variables
 source ./config/env
 
+# Source the annotation file
+source ./config/ann
+
+# Get the current timestamp
+TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
+
+# Create an output directory with the current timestamp
+export OUT_DIR="output/output_$TIMESTAMP"
+mkdir -p "$OUT_DIR" "$OUT_DIR"/tmp "$OUT_DIR"/annotation
+
+# Read the parameters from the params.csv file
+while IFS=',' read -r var value; do
+  if [ "$var" == "future.mem" ]
+  then
+    MEMORY="$value"
+  fi
+
+  if [ "$var" == "future.workers" ]
+  then
+    WORKERS="$value"
+  fi
+done < config/params.csv
+
+# Set the Seurat image based on whether ATAC is true or not
+if [[ "${atac:-}" == "TRUE" ]]
+then
+  SEURAT_IMAGE=seurat-signac
+fi
+
+# Check if the Seurat image version tag has been supplied
+if [[ -z ${SEURAT_IMAGE_VER} ]]
+then
+  echo -e "Seurat image version tag needs to be supplied using the -v argument.\n\nFind available versions at https://gallery.ecr.aws/chobiolab/$SEURAT_IMAGE"
+  exit 1
+fi
+
+echo "Using Seurat image $SEURAT_IMAGE:$SEURAT_IMAGE_VER"
+
+# Run the Seurat image using Singularity
 singularity run \
   --no-home \
-  --pwd /app \
-  -B $DATA_PATH:$DATA_PATH \
-  -B $APP_PATH/coreSC/output:/app/output \
+  --pwd "$APP_PATH" \
+  -B "$DATA_PATH":"$DATA_PATH" \
+  -B "$APP_PATH":"$APP_PATH" \
   -B ./config/params.csv:/app/config/params.csv \
   -B ./config/samples.csv:/app/config/samples.csv \
-  docker://public.ecr.aws/chobiolab/coresc:$CORESC_VER "$@"
+  docker://public.ecr.aws/chobiolab/"$SEURAT_IMAGE":"$SEURAT_IMAGE_VER" "$APP_PATH"/main "$@"
+
+# Set the input directory to the current output directory and run the annotation script
+INPUT=$(pwd)/"$OUT_DIR"
+cd annotation || return
+./run -i "$INPUT"/integrated.RDS -m "$MODEL" -w "$WORKERS" -r "$MEMORY"
+cd ..
+
+# Move the annotation output to the output directory and remove the temporary directory
+mv annotation/output/output_*/* "$OUT_DIR"/annotation
+rm -rf annotation/output
 

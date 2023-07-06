@@ -7,7 +7,7 @@ library(dplyr)
 library(parallel)
 
 # plan(multicore) # parallelization
-# options(future.globals.maxSize = 2000 * 1024^2)
+# options(future.globals.maxSize = 2000 * 1024^2 * 1000)
 
 args <- commandArgs(trailingOnly = T)
 out_path <- paste0(args[1], "/")
