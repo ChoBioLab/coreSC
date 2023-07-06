@@ -16,7 +16,7 @@ plan(
   multicore,
   workers = params["future.workers", ]
 ) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2 * 1000)
 
 # ref: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
 # run check for single sample

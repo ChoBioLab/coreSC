@@ -15,7 +15,7 @@ plan(
   multicore,
   workers = params["future.workers", ]
 ) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2 * 1000)
 
 # run check for single sample
 if (length(samples$name) == 1) {
