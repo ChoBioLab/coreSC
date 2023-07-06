@@ -16,7 +16,7 @@ plan(
   multicore,
   workers = params["future.workers", ]
 ) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2 * 1000)
 
 # ref: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
 # run check for single sample
@@ -90,6 +90,7 @@ y <- FindAllMarkers(
   verbose = FALSE
 )
 
+save_h5(x, "integrated")
 save_object(x, "integrated")
 write.csv(y, paste0(out_path, "all_markers.csv"))
 
