@@ -1,16 +1,16 @@
-name: Prod Deploy to Amazon ECR
+name: QA Deploy to Amazon ECR
 
 on:
   push:
     branches:
-      - prod
+      - qa
 
 env:
   AWS_REGION: us-east-1                   # set this to your preferred AWS region, e.g. us-west-1
   REGISTRY_ALIAS: chobiolab                # aws ecr public alias
   REPOSITORY: coresc      # aws ecr repo path
   BUILD_PATH: .                           # dir location of build files in repo
-  CORESC_VER: latest                      # version of coreSC
+  CORESC_VER: qa                      # version of coreSC
 
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    environment: production
+    environment: qa
 
     steps:
     - name: Checkout
@@ -51,4 +51,4 @@ jobs:
         REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
       run: |
         docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$CORESC_VER $BUILD_PATH
-        docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:latest
+        docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$CORESC_VER

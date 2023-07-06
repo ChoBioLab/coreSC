@@ -14,7 +14,7 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 library(harmony)
 library(limma)
 
-args <- commandArgs(trailingOnly = T)
+args <- commandArgs(trailingOnly = TRUE)
 out_path <- paste0(args[1], "/")
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
@@ -22,7 +22,7 @@ plan(
   multicore,
   workers = params["future.workers", ]
 ) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2 * 1000)
 
 ## load H5 reference for cluster mapping
 # download.file(
@@ -79,7 +79,7 @@ options(future.globals.maxSize = params["future.mem", ] * 1024^2)
 #
 # anchors <- list()
 
-for (i in 1:nrow(samples)) {
+for (i in seq_len(nrow(samples))) {
   name <- samples$name[i]
   # the 10x hdf5 file contains both data types.
   x <- Read10X_h5(
@@ -127,12 +127,12 @@ for (i in 1:nrow(samples)) {
   )
 
   # add in the ATAC-seq data
-  grange.counts <- StringToGRanges(
+  grange_counts <- StringToGRanges(
     rownames(cellranger_peaks),
     sep = c(":", "-")
   )
-  grange.use <- seqnames(grange.counts) %in% standardChromosomes(grange.counts)
-  cellranger_peaks <- cellranger_peaks[as.vector(grange.use), ]
+  grange_use <- seqnames(grange_counts) %in% standardChromosomes(grange_counts)
+  cellranger_peaks <- cellranger_peaks[as.vector(grange_use), ]
   annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
   seqlevelsStyle(annotation) <- "UCSC"
   genome(annotation) <- "hg38"
@@ -344,7 +344,7 @@ for (i in 1:nrow(samples)) {
   #  )
 
   # ATAC analysis
-  # We exclude the first dimension as this is typically correlated with sequencing depth
+  # We exclude 1st dim as this is typically correlated with sequencing depth
   DefaultAssay(x) <- "peaks"
   x <- RunTFIDF(x) %>%
     FindTopFeatures(
@@ -440,15 +440,15 @@ for (i in 1:nrow(samples)) {
     )
   )
 
-  motif.matrix <- CreateMotifMatrix(
+  motif_matrix <- CreateMotifMatrix(
     features = granges(x),
     pwm = pwm_set,
     genome = "hg38",
     use.counts = FALSE
   )
 
-  motif.object <- CreateMotifObject(
-    data = motif.matrix,
+  motif_object <- CreateMotifObject(
+    data = motif_matrix,
     pwm = pwm_set
   )
 
@@ -456,7 +456,7 @@ for (i in 1:nrow(samples)) {
     x,
     assay = "peaks",
     slot = "motifs",
-    new.data = motif.object
+    new.data = motif_object
   )
 
   # Note that this step can take 30-60 minutes
@@ -495,7 +495,6 @@ if (length(samples$name) == 1) {
 
 # integration
 # https://satijalab.org/signac/1.2.0/articles/integration.html
-# https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
 x <- Reduce(merge, objects)
 save_h5(x, "combined")
 
@@ -638,7 +637,7 @@ x <- subset(
 str_section_head("Integrated Filtered")
 
 # ATAC analysis
-# We exclude the first dimension as this is typically correlated with sequencing depth
+# We exclude 1st dim as this is typically correlated with sequencing depth
 x <- RunTFIDF(x) %>%
   FindTopFeatures(
     min.cutoff = "q0"
@@ -646,7 +645,7 @@ x <- RunTFIDF(x) %>%
   RunSVD()
 
 # fix to account for NA values being added as char string after integration
-for (i in 1:length(x@assays$peaks@ranges@seqinfo@genome)) {
+for (i in seq_len(length(x@assays$peaks@ranges@seqinfo@genome))) {
   x@assays$peaks@ranges@seqinfo@genome[i] <- NA
 }
 
@@ -709,15 +708,15 @@ pwm_set <- getMatrixSet(
   )
 )
 
-motif.matrix <- CreateMotifMatrix(
+motif_matrix <- CreateMotifMatrix(
   features = granges(x),
   pwm = pwm_set,
   genome = "hg38",
   use.counts = FALSE
 )
 
-motif.object <- CreateMotifObject(
-  data = motif.matrix,
+motif_object <- CreateMotifObject(
+  data = motif_matrix,
   pwm = pwm_set
 )
 
@@ -725,7 +724,7 @@ x <- SetAssayData(
   x,
   assay = "peaks",
   slot = "motifs",
-  new.data = motif.object
+  new.data = motif_object
 )
 
 # Note that this step can take 30-60 minutes

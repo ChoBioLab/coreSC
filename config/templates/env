@@ -1,8 +1,11 @@
-DATA_PATH=/TOP/LEVEL/PATH/TO/DATA
+#!/bin/bash
+
+DATA_PATH=/TOP/LEVEL/DATA/PATH
 
 # do not edit below this line
 ################################################################################
 
-APP_PATH=$(cd ../; pwd)
-CORESC_VER=v4-r2
+APP_PATH=$(pwd -P)
 
+# DEFAULT SEURAT IMAGE
+SEURAT_IMAGE=seurat-base

@@ -9,7 +9,7 @@ library(future) # parallelization
 library(harmony)
 library(limma)
 
-args <- commandArgs(trailingOnly = T)
+args <- commandArgs(trailingOnly = TRUE)
 out_path <- paste0(args[1], "/")
 load(paste0(out_path, "tmp/preamble_image.RData"))
 
@@ -17,9 +17,9 @@ plan(
   multicore,
   workers = params["future.workers", ]
 ) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2 * 1000)
 
-for (i in 1:nrow(samples)) {
+for (i in seq_len(nrow(samples))) {
   name <- samples$name[i]
   raw <- Read10X( # pulling data with no filter
     data.dir = samples$dir[i]
@@ -241,13 +241,13 @@ for (i in 1:nrow(samples)) {
     x,
     reduction = "wnn.umap",
     group.by = "group",
-    label = T
+    label = TRUE
   )
 
   p2 <- DimPlot(
     x,
     reduction = "wnn.umap",
-    label = T
+    label = TRUE
   )
 
   save_figure(

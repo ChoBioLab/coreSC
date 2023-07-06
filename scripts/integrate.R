@@ -6,7 +6,7 @@ library(dplyr)
 library(future) # parallelization
 library(limma)
 
-args <- commandArgs(trailingOnly = T)
+args <- commandArgs(trailingOnly = TRUE)
 out_path <- paste0(args[1], "/")
 load(paste0(out_path, "tmp/preamble_image.RData"))
 objects <- read_object("individual_clustered")
@@ -15,9 +15,8 @@ plan(
   multicore,
   workers = params["future.workers", ]
 ) # parallelization
-options(future.globals.maxSize = params["future.mem", ] * 1024^2)
+options(future.globals.maxSize = params["future.mem", ] * 1024^2 * 1000)
 
-# ref: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html#perform-integration-using-pearson-residuals-1
 # run check for single sample
 if (length(samples$name) == 1) {
   message("Single sample detected - skipping integration")
@@ -77,7 +76,7 @@ p1 <- DimPlot(
 p2 <- DimPlot(
   x,
   reduction = "umap",
-  label = T
+  label = TRUE
 )
 
 save_figure(
@@ -96,6 +95,7 @@ y <- FindAllMarkers(
 )
 
 save_h5(x, "integrated")
+save_object(x, "integrated")
 write.csv(y, paste0(out_path, "all_markers.csv"))
 
 print("End of integrated.R")

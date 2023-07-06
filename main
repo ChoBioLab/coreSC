@@ -11,31 +11,32 @@ trap on_failure ERR
 source ./scripts/getopts
 
 # housekeeping
-TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
-OUT_DIR="output/output_$TIMESTAMP"
-mkdir -p $OUT_DIR $OUT_DIR/tmp
-
 declare -a SCRIPTS=(
 "preamble.R"
-"create-object.R"
+"create-object-sct.R"
 "integrate.R"
 )
 
 # do check for multimodal routine
 if [[ "${atac:-}" == "TRUE" ]]
 then
-    echo "Creating ATAC object"
+    echo "Running ATAC-multiome WNN Preprocessing"
     SCRIPTS=("preamble.R" "atac-multi-wnn.R")
     echo "${SCRIPTS[@]}"
 elif [[ "${cite:-}" == "TRUE" ]]
 then
-    echo "Creating CITE object"
+    echo "Running CITE-multiome WNN Preprocessing"
     SCRIPTS=("preamble.R" "cite-wnn.R")
     echo "${SCRIPTS[@]}"
 elif [[ "${harmonize:-}" == "TRUE" ]]
 then
     echo "Integrating using Harmony"
-    SCRIPTS=("preamble.R" "create-object.R" "harmonize.R")
+    SCRIPTS=("preamble.R" "create-object-sct.R" "harmonize.R")
+    echo "${SCRIPTS[@]}"
+elif [[ "${mixscape:-}" == "TRUE" ]]
+then
+    echo "Running Mixscape Perturbation Preprocessing"
+    SCRIPTS=("preamble.R" "create-multi-norm.R" "mixscape.R")
     echo "${SCRIPTS[@]}"
 else
     echo "Creating traditional Seurat object"
@@ -44,10 +45,10 @@ fi
 # execute pipeline scripts
 for i in "${SCRIPTS[@]}"
 do
-    echo "coreSC master version commit $(cat .git/refs/heads/master | cut -c -7)" >> $OUT_DIR/log.txt
-    Rscript ./scripts/$i $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
+    echo "coreSC master version commit $(cat .git/refs/heads/master | cut -c -7)" >> "$OUT_DIR"/log.txt
+    Rscript ./scripts/"$i" "$OUT_DIR" 2>&1 | tee -a "$OUT_DIR"/log.txt
 done
 
-cp ./config/params.csv ./config/samples.csv $OUT_DIR
-rm -rf $OUT_DIR/tmp
+cp ./config/params.csv ./config/samples.csv "$OUT_DIR"
+rm -rf "$OUT_DIR"/tmp
 

@@ -3,7 +3,7 @@
 library(dplyr)
 
 # capture bash vars
-args <- commandArgs(trailingOnly = T)
+args <- commandArgs(trailingOnly = TRUE)
 
 out_path <- paste0(args[1], "/")
 params <- read.csv("./config/params.csv", row.names = 1)
