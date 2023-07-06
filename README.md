@@ -13,7 +13,7 @@ This pipeline serves as the master process to execute multi-sample preprocessing
 ```sh
 
 # clone the repo
-git clone https://github.com/ChoBioLab/coreSC.git
+git clone https://github.com/ChoBioLab/coreSC.git --recurse-submodules
 
 # put config templates in-place
 cd coreSC/config && cp templates/* .
@@ -24,6 +24,7 @@ cd coreSC/config && cp templates/* .
     * `env`
     * `params.csv`
     * `samples.csv`
+    * `ann`
 1. Confirm parallel memory use with future
     * The `future.mem` param gives `RAM / thread`. Each individual task needs an adequate threshold of RAM to complete its work. Also `future.mem * future.workers` gives the total memory allocation. This should live under the available system RAM for the job as a whole. If either of these considerations are not met, the run will fail!
 
@@ -31,20 +32,22 @@ cd coreSC/config && cp templates/* .
 - Execution can be carried out with the `run` script.
 
 `./run`
+- `-v` *version* [REQUIRED]
 - `-h` *harmonize* [NULL]
 - `-a` *atac-multi subroutine* [NULL]
 - `-c` *cite-seq subroutine* [NULL]
 
 - Executing `run` alone will perform a standard, single-modal regularization and integration if relevant.
+- Specifying a Seurat container version to use is required. Versions can be found at https://gallery.ecr.aws/chobiolab
 
 ```sh
 # examples
 
-./run           # regularize and integrate with SCTransform method
+./run -v v4-r2           # regularize and integrate with SCTransform method
 
-./run -h TRUE   # substitute integration method for harmony
+./run -v v4-r2 -h TRUE   # substitute integration method for harmony
 
-./run -a TRUE   # alternatively, pass samples through atac-multiome routine
+./run -v v4-r2 -a TRUE   # alternatively, pass samples through atac-multiome routine
 ```
 
 ### Output
@@ -65,6 +68,30 @@ coreSC/output/output_2022-12-21_18.59.26
 ├── sample2_unfilt_vln.pdf
 ├── sample2_var_features.pdf
 └── samples.csv                     # input config samples.csv
+
+coreSC/output/output_2023-07-06_19.32.36
+├── all_markers.csv                     # output of FindAllMarkers() unannotated
+├── annotation                          # CELLTYPIST OUTPUT
+│   ├── annd_all_markers.csv            # output of FindAllMarkers() annotated
+│   ├── celltypist-log.txt
+│   ├── decision_matrix.csv             # celltypist output
+│   ├── integrated-annd_2023-07-06.RDS  # ANNOTATED OBJECT
+│   ├── predicted_labels.csv            # celltypist output
+│   ├── probability_matrix.csv          # celltypist output
+│   └── qc.csv                          # qc metrics for annotation
+├── combined_dimplot_red.pdf
+├── individual_clustered.RDS            # list of individual, norm'd, clustered objects
+├── integrated.h5seurat                 # integrated hdf5 object unannotated
+├── integrated.RDS                      # integrated seurat object unannotated
+├── log.txt
+├── params.csv                          # copy of process params
+├── sample1_individual_dimplot.pdf
+├── sample1_unfilt_scatter.pdf
+├── sample1_unfilt_vln.pdf
+├── sample1_var_features.pdf
+└── samples.csv                         # copy of sample sheet
+
+1 directory, 19 files
 ```
 
 ## Reference
@@ -72,13 +99,20 @@ coreSC/output/output_2022-12-21_18.59.26
 ### File Tree
 ```sh
 coreSC/
+├── annotation
+│   ├── README.md
+│   ├── run                     # annotation execution script
+│   └── src
+│       ├── apply-ann.R         # process to apply annotation back to input
+│       ├── getopts             # annotation run arguments
+│       ├── matrix-convert.R    # seurat to sparse matrix conversion
+│       └── qc.R                # qc metrics generation process
 ├── config                      # COPY CONFIG FILES HERE
 │   └── templates
-│       ├── clust_ann.csv       # legacy
-│       ├── env                 # environment vars
+│       ├── ann                 # env vars for annotation
+│       ├── env                 # general env vars
 │       ├── params.csv          # pipeline parameters
 │       └── samples.csv         # sample details
-├── Dockerfile                  # image creation steps for coreSC env
 ├── LICENSE
 ├── main                        # orchestration script
 ├── output
@@ -87,16 +121,17 @@ coreSC/
 └── scripts
     ├── atac-multi-wnn.R        # full atac-multiome routine
     ├── cite-wnn.R              # full cite-seq multiome routine
-    ├── create-multimodal.R     # legacy
-    ├── create-object.R         # seurat object creation subroutine - single modal
+    ├── create-multi-norm.R     # create object routine for multiomic samples
+    ├── create-object-norm.R    # create object routine with classical normalization
+    ├── create-object-sct.R     # create object routine with SCTransform normalization
     ├── getopts                 # run script arguments
     ├── harmonize.R             # harmony integration subroutine
     ├── integrate.R             # standard seurat integration subroutine
     ├── main.R                  # legacy
+    ├── mixscape.R              # method for crispr preprocessing
     └── preamble.R              # place setting subroutine
 
-4 directories, 18 files
-
+6 directories, 26 files
 ```
 
 ### params.csv
