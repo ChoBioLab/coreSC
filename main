@@ -45,9 +45,10 @@ fi
 # execute pipeline scripts
 for i in "${SCRIPTS[@]}"
 do
-    echo "coreSC master version commit $(cat .git/refs/heads/master | cut -c -7)" >> $OUT_DIR/log.txt
-    Rscript ./scripts/$i $OUT_DIR 2>&1 | tee -a $OUT_DIR/log.txt
+    echo "coreSC master version commit $(cat .git/refs/heads/master | cut -c -7)" >> "$OUT_DIR"/log.txt
+    Rscript ./scripts/"$i" "$OUT_DIR" 2>&1 | tee -a "$OUT_DIR"/log.txt
 done
 
-cp ./config/params.csv ./config/samples.csv $OUT_DIR
-rm -rf $OUT_DIR/tmp
+cp ./config/params.csv ./config/samples.csv "$OUT_DIR"
+rm -rf "$OUT_DIR"/tmp
+
