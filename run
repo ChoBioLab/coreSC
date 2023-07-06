@@ -2,6 +2,23 @@
 
 source ./scripts/getopts
 source ./config/env
+source ./config/ann
+
+TIMESTAMP=$(date +"%Y-%m-%d_%H.%M.%S")
+export OUT_DIR="output/output_$TIMESTAMP"
+mkdir -p $OUT_DIR $OUT_DIR/tmp $OUT_DIR/annotation
+
+while IFS=',' read -r var value; do
+  if [ "$var" == "future.mem" ]
+  then
+    MEMORY="$value"
+  fi
+
+  if [ "$var" == "future.workers" ]
+  then
+    WORKERS="$value"
+  fi
+done < config/params.csv
 
 if [[ "${atac:-}" == "TRUE" ]]
 then
@@ -25,3 +42,10 @@ singularity run \
   -B ./config/samples.csv:/app/config/samples.csv \
   docker://public.ecr.aws/chobiolab/$SEURAT_IMAGE:$SEURAT_IMAGE_VER $APP_PATH/main "$@"
 
+INPUT=`pwd`/$OUT_DIR
+cd annotation
+./run -i $INPUT/integrated.RDS -m $MODEL -w $WORKERS -r $MEMORY
+cd ..
+
+mv annotation/output/output_*/* ${OUT_DIR}/annotation
+rm -rf annotation/output

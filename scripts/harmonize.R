@@ -90,6 +90,7 @@ y <- FindAllMarkers(
   verbose = FALSE
 )
 
+save_h5(x, "integrated")
 save_object(x, "integrated")
 write.csv(y, paste0(out_path, "all_markers.csv"))
 
