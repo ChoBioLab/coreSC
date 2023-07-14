@@ -5,6 +5,7 @@ tmp/
 *.swp
 config/*.csv*
 config/env
+config/ann
 *.RData
 *.sif*
 *.lsf
